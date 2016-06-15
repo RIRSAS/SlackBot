@@ -9,10 +9,7 @@ var builder = require('botbuilder');
 var port = process.env.PORT || 8080;
 
 // Create bot
-var bot = new builder.BotConnectorBot({
-	appId: 'slack-bot-rirsas',
-	appSecret: 'slack-bot-rirsas'
-});
+var bot = new builder.BotConnectorBot({appId:'slack-bot-rirsas', appSecret:'slack-bot-rirsas'});
 
 // Talk Method
 bot.add('/', function (session) {
