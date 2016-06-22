@@ -23,14 +23,13 @@ var greetingAry = ['よう','やあ','やぁ','こんにちわ','ハロー','お
 
 // オウム返しテスト
 dialog.matches(greetingAry,	function(session){
-// dialog.matches(['よう','やあ','やぁ','こんにちわ','ハロー','おっす','こんばんわ','おはよう','ヘイ','hi','ヘロー','hello'],	 function(session){
-			session.send(session.message.text);
-			session.send(session.message.text);
-			// session.send("hi! I'm Bot");
+
+		session.send(session.message.text);
+		// session.send(session.message.text);
 	}
 );
 
-/*dialog.matches((['今日発売の本は？']), function(session){
+dialog.matches((['今日発売の本は？']), function(session){
 
 	dt = new Date();
 	// 当日発売分の判別用
@@ -39,13 +38,15 @@ dialog.matches(greetingAry,	function(session){
 	// 表示開始宣言用
 	formatted_full = dt.toFormat("YYYY/MM/DD");
 
-	// 結果用亜配列
-	var resultArray = [];
-
 	// ブックサーチの2016/06のコミック検索ページ
 	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/1606c.html',  function (err, $, res) {
 
 	  _$tBody = $('tBody');
+
+	  // 冊数を数える
+	  len = _$tBody.children().length;
+
+	  session.send(formatted_full + "には以下の本が発売されます。");
 
 	  // tBodyの子要素であるtrを指定してeachで回している
 	  $(_$tBody.children()).each(function(){
@@ -87,22 +88,16 @@ dialog.matches(greetingAry,	function(session){
 	  	if(td_date==formatted){
 	  		// console.log(text_result);
 		  	// console.log(td);
-  			resultArray.push(text_result);
+ 
+		  	session.send(text_result);
 
 	  	}
-
-	  	var l = resultArray.length;
-
 
 	  });
 	});
 
-  	session.send('到達!');
-
-  	session.send('以上です');
-
 });
-*/
+
 // Talk Method
 
 // bot.add('/', function (session) {
