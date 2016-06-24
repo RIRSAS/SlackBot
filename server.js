@@ -32,7 +32,7 @@ var greetingAry = ['よう','やあ','やぁ','こんにちわ','ハロー','お
 dialog.matches('ニュース',
 	function(session){
 
-		session.send('Yahoo Japan ITカテゴリのヘッドニュースは以下になります。');
+		//session.send('Yahoo Japan ITカテゴリのヘッドニュースは以下になります。');
 
 		client.fetch('http://news.yahoo.co.jp/list/?c=computer',  function (err, $, res) {
 		
