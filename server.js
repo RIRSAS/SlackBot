@@ -32,22 +32,20 @@ var greetingAry = ['よう','やあ','やぁ','こんにちわ','ハロー','お
 dialog.matches('ニュース',
 	function(session){
 
-		//session.send('Yahoo Japan ITカテゴリのヘッドニュースは以下になります。');
-
 		client.fetch('http://news.yahoo.co.jp/list/?c=computer',  function (err, $, res) {
 		
-		 // var resultText = "Yahoo Japan ITカテゴリのヘッドニュースは以下になります。\n\r";
-		 var resultText = "";
+		 var resultText = "Yahoo Japan ITカテゴリのヘッドニュースは以下になります。\n\r";
+		 //var resultText = "";
 
-		 var resultArray = [];
+		 // var resultArray = [];
 
 		 $('ul.list > li > a').each(function(){
 
 			var ttlText = $(this).find('span.ttl').text();
 
-			resultArray.push(ttlText);
+			// resultArray.push(ttlText);
 
-			session.userData.newsresult = resultArray;
+			// session.userData.newsresult = resultArray;
 
 			var linkUrl = $(this).attr('href');
 
@@ -55,8 +53,8 @@ dialog.matches('ニュース',
 
 		});
 
-		 //session.send(resultText);
-		 session.send(session.userData.newsresult[0]);
+		 session.send(resultText);
+		 //session.send(session.userData.newsresult[0]);
 
 	});
 
