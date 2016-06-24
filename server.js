@@ -29,6 +29,32 @@ var greetingAry = ['よう','やあ','やぁ','こんにちわ','ハロー','お
 // 	}
 // );
 
+dialog.matches('ニュース',
+	function(session){
+
+		session.send('Yahoo Japan ITカテゴリのヘッドニュースは以下になります。');
+
+		client.fetch('http://news.yahoo.co.jp/list/?c=computer',  function (err, $, res) {
+		
+		 // var resultText = "Yahoo Japan ITカテゴリのヘッドニュースは以下になります。\n\r";
+		 var resultText = "";
+
+		 $('ul.list > li > a').each(function(){
+
+			var ttlText = $(this).find('span.ttl').text();
+
+			var linkUrl = $(this).attr('href');
+
+		 	resultText += ttlText + "\n\r" + linkUrl + "\n\r"; 
+
+		});
+
+		 session.send(resultText);
+
+	});
+
+});
+
 var fncTellMe = function(session){
 		if(!session.userData.first){
 			session.beginDialog('/talk/first');
