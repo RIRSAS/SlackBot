@@ -29,36 +29,38 @@ var greetingAry = ['よう','やあ','やぁ','こんにちわ','ハロー','お
 // 	}
 // );
 
+// yahooニュースITカテゴリの先頭ページのテキストとリンクを表示
 dialog.matches('ニュース',
 	function(session){
-
+		// yahooニュースのITカテゴリへアクセス
 		client.fetch('http://news.yahoo.co.jp/list/?c=computer',  function (err, $, res) {
-		
-		 var resultText = "Yahoo Japan ITカテゴリのヘッドニュースは以下になります。\n\r";
-		 //var resultText = "";
 
-		 // var resultArray = [];
-
+		 var resultText = "Yahoo Japan ITカテゴリのヘッドニュースは...\n\r";
+		 
+		 // listクラスを持つul要素 の li要素 の a要素を対象としてeachを実行
 		 $('ul.list > li > a').each(function(){
 
+		 	// ニュースタイトル
 			var ttlText = $(this).find('span.ttl').text();
 
-			// resultArray.push(ttlText);
-
-			// session.userData.newsresult = resultArray;
-
+			// a要素に設定されたリンクURL取得
 			var linkUrl = $(this).attr('href');
 
+			// ニュースタイトル リンクURLの順で結果文字列に追加
 		 	resultText += ttlText + "\n\r" + linkUrl + "\n\r"; 
 
 		});
 
+		 // 取得終了を発言
+		 resultText += "以上です!"
+
+		 // ユーザへ結果を送信
 		 session.send(resultText);
-		 //session.send(session.userData.newsresult[0]);
 
-	});
+		});
+	}
+);
 
-});
 
 var fncTellMe = function(session){
 		if(!session.userData.first){
