@@ -29,6 +29,8 @@ var greetingAry = ['よう','やあ','やぁ','こんにちわ','ハロー','お
 // 	}
 // );
 
+
+
 // yahooニュースITカテゴリの先頭ページのテキストとリンクを表示
 dialog.matches('ニュース',
 	function(session){
@@ -78,6 +80,38 @@ dialog.matches('ニュース',
 	}
 );
 
+dialog.matches('4gamer',
+	function(session){
+
+		// 個別の記事へのリンクの親ページ
+		var url_base = 'http://www.4gamer.net';
+
+		// 4gamerのトップページへアクセス
+		client.fetch('http://www.4gamer.net/',  function (err, $, res) {
+
+		 var resultText4gamer = "4Gamerの新着ニュースは...\n\r";
+		 
+		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
+		$('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
+
+			var titleText = $(this).text();
+			var targetUrl = $(this).attr('href');
+
+			// タイトル リンクURLの順で結果文字列に追加
+			resultText4gamer += titleText + "\n\r";
+		 	resultText4gamer += url_base + targetUrl + "\n\r";
+
+		});
+
+		 // 取得終了を発言
+		 resultText4gamer += "\n\r以上です!"
+
+		 // ユーザへ結果を送信
+		 session.send(resultText4gamer);
+
+		});
+	}
+);
 
 var fncTellMe = function(session){
 		if(!session.userData.first){
