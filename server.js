@@ -39,7 +39,8 @@ dialog.matches('ニュース',
 		// yahooのIT・科学ニュースの1ページ目へアクセス
 		client.fetch('http://news.yahoo.co.jp/hl?c=c_sci&p=1',  function (err, $, res) {
 
-		 var resultText = "Yahoo Japan IT・科学の新着ニュースは...\n\r\n\r";
+		 var resultText = "Yahoo Japan IT・科学の新着ニュースは...\n\r";
+		 resultText += "---\n\r";
 		 
 		 // listクラスを持つul要素 の li要素 の a要素を対象としてeachを実行
 		 // $('ul.list > li > a').each(function(){
@@ -66,7 +67,9 @@ dialog.matches('ニュース',
 			var linkUrl = _$a.attr('href');
 
 			// ニュースタイトル ソース リンクURLの順で結果文字列に追加
-		 	resultText += ttlText + "(from:" + sourceText + ")" + "\n\r" + linkUrl + "\n\r"; 
+		 	resultText += ttlText + "(from:" + sourceText + ")" + "\n\r"
+		 	resultText += linkUrl + "\n\r";
+		 	resultText += "---\n\r";
 
 		});
 
@@ -90,6 +93,7 @@ dialog.matches('4gamer',
 		client.fetch('http://www.4gamer.net/',  function (err, $, res) {
 
 		 var resultText4gamer = "4Gamerの新着ニュースは...\n\r";
+		 resultText4gamer += "---\n\r";
 		 
 		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
 		$('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
@@ -100,11 +104,12 @@ dialog.matches('4gamer',
 			// タイトル リンクURLの順で結果文字列に追加
 			resultText4gamer += titleText + "\n\r";
 		 	resultText4gamer += url_base + targetUrl + "\n\r";
+		 	resultText4gamer += "---\n\r";
 
 		});
 
 		 // 取得終了を発言
-		 resultText4gamer += "\n\r以上です!"
+		 resultText4gamer += "以上です!"
 
 		 // ユーザへ結果を送信
 		 session.send(resultText4gamer);
