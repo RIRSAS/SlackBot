@@ -33,26 +33,43 @@ var greetingAry = ['よう','やあ','やぁ','こんにちわ','ハロー','お
 dialog.matches('ニュース',
 	function(session){
 		// yahooニュースのITカテゴリへアクセス
-		client.fetch('http://news.yahoo.co.jp/list/?c=computer',  function (err, $, res) {
+		// client.fetch('http://news.yahoo.co.jp/list/?c=computer',  function (err, $, res) {
+		// yahooのIT・科学ニュースの1ページ目へアクセス
+		client.fetch('http://news.yahoo.co.jp/hl?c=c_sci&p=1',  function (err, $, res) {
 
-		 var resultText = "Yahoo Japan ITカテゴリのヘッドニュースは...\n\r";
+		 var resultText = "Yahoo Japan IT・科学の新着ニュースは...\n\r\n\r";
 		 
 		 // listクラスを持つul要素 の li要素 の a要素を対象としてeachを実行
-		 $('ul.list > li > a').each(function(){
+		 // $('ul.list > li > a').each(function(){
+		 // $('ul.listBd > li > p.ttl > a').each(function(){
+		// listクラスを持つul要素 の li要素
+		$('ul.listBd > li').each(function(){
+
+			var _$p_ttl = $(this).find('p.ttl');
+			var _$a = _$p_ttl.find('a');
+
+			var _$p_source = $(this).find('p.source');
+			var _$span_cp = _$p_source.find('span.cp');
 
 		 	// ニュースタイトル
-			var ttlText = $(this).find('span.ttl').text();
+			//var ttlText = $(this).find('span.ttl').text();
+			// var ttlText = $(this).text();
+			var ttlText = _$a.text();
+
+			// ニュースソース
+			var sourceText = _$span_cp.text();
 
 			// a要素に設定されたリンクURL取得
-			var linkUrl = $(this).attr('href');
+			// var linkUrl = $(this).attr('href');
+			var linkUrl = _$a.attr('href');
 
-			// ニュースタイトル リンクURLの順で結果文字列に追加
-		 	resultText += ttlText + "\n\r" + linkUrl + "\n\r"; 
+			// ニュースタイトル ソース リンクURLの順で結果文字列に追加
+		 	resultText += ttlText + "(from:" + sourceText + ")" + "\n\r" + linkUrl + "\n\r"; 
 
 		});
 
 		 // 取得終了を発言
-		 resultText += "以上です!"
+		 resultText += "\n\r以上です!"
 
 		 // ユーザへ結果を送信
 		 session.send(resultText);
