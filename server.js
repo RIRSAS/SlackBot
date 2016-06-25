@@ -162,36 +162,35 @@ bot.add('/talk/seccond',[
 ]);
 
 
-dialog.matches((['今日発売の本は？']), function(session){
+dialog.matches((['本']), function(session){
 
 	dt = new Date();
 
 	// 年号取得
 	var	fmt_year = dt.toFormat("YYYY");
 
+	// 月を取得
 	var fmt_month = dt.toFormat("MM");
 
+	// 日付を取得
 	var fmt_day = dt.toFormat("DD")-1;
 
+	// URL用年月取得
 	var url_now = fmt_year.slice(-2) + fmt_month;
 
+	// 当日日付取得用
 	var fmt_today = fmt_month + "/" + fmt_day;
 
-	var rst_book_text = "";
+	// 開始文言設定
+	var rst_book_text = "本日発売の本は...\n\r";
 
-	// // 当日発売分の判別用
-	// formatted = dt.toFormat("MM/DD");
-
-	// // 表示開始宣言用
-	// formatted_full = dt.toFormat("YYYY/MM/DD");
-
-	// ブックサーチの2016/06のコミック検索ページ
+	// ブックサーチから今月分のページへアクセス
 	// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/1606c.html',  function (err, $, res) {
 	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'c.html',  function (err, $, res) {
 
 		_$tBody = $('tBody');
 
-	  $(_$tBody.children()).each(function(){
+	 	$(_$tBody.children()).each(function(){
 
 			var _$td = $(this).find('td');
 
@@ -211,13 +210,14 @@ dialog.matches((['今日発売の本は？']), function(session){
 				rst_book_text += "出版社：" + td_publisher;
 				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
 				rst_book_text += "タイトル：" + td_title + "\n\r";
-				rst_book_text += "\n\r"
 			}
 
 		});
 
-	  // HTMLタイトルを表示
-	  session.send(rst_book_text);
+	 	rst_book_text += "以上です！"
+
+		// HTMLタイトルを表示
+		session.send(rst_book_text);
 
 	});
 });
