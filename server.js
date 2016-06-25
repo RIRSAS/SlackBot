@@ -178,7 +178,7 @@ dialog.matches((['本']), function(session){
 	var fmt_month = dt.toFormat("MM");
 
 	// 日付を取得
-	var fmt_day = dt.toFormat("DD")-1;
+	var fmt_day = dt.toFormat("DD");
 
 	// URL用年月取得
 	var url_now = fmt_year.slice(-2) + fmt_month;
@@ -221,7 +221,7 @@ dialog.matches((['本']), function(session){
 
 		});
 
-	 	rst_book_text += "以上です！"
+	 	rst_book_text += "以上です！";
 
 		// HTMLタイトルを表示
 		session.send(rst_book_text);
