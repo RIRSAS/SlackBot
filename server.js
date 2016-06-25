@@ -187,7 +187,7 @@ dialog.matches((['本']), function(session){
 	var fmt_today = fmt_month + "/" + fmt_day;
 
 	// 開始文言設定
-	var rst_book_text = "本日発売の本は...\n\r";
+	var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
 	rst_book_text += "---\n\r";
 
 	// ブックサーチから今月分のページへアクセス
@@ -212,6 +212,7 @@ dialog.matches((['本']), function(session){
 			// タイトル
 			var td_title = _$td.eq(3).text();
 
+			// 結果文字列をセット
 			if(td_date == fmt_today){
 				rst_book_text += "出版社：" + td_publisher;
 				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
