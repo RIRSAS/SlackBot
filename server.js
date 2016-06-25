@@ -169,11 +169,10 @@ bot.add('/talk/seccond',[
 
 dialog.matches((['本']), function(session){
 
-	var dtMaster = new Date();
+	var dtBase = new Date();
 
-	var dtUTC = dtMaster;
-
-	var dt = dtUTC.addHours(15);
+	// 北米時間(JST-15)を日本時間に換算
+	var dt = dtBase.addHours(15);
 
 	// 年号取得
 	var	fmt_year = dt.toFormat("YYYY");
