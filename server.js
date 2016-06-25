@@ -165,17 +165,59 @@ bot.add('/talk/seccond',[
 dialog.matches((['今日発売の本は？']), function(session){
 
 	dt = new Date();
-	// 当日発売分の判別用
-	formatted = dt.toFormat("MM/DD");
 
-	// 表示開始宣言用
-	formatted_full = dt.toFormat("YYYY/MM/DD");
+	// 年号取得
+	var	fmt_year = dt.toFormat("YYYY");
+
+	var fmt_month = dt.toFormat("MM");
+
+	var fmt_day = dt.toFormat("DD")-1;
+
+	var url_now = fmt_year.slice(-2) + fmt_month;
+
+	var fmt_today = fmt_month + "/" + fmt_day;
+
+	var rst_book_text = "";
+
+	// // 当日発売分の判別用
+	// formatted = dt.toFormat("MM/DD");
+
+	// // 表示開始宣言用
+	// formatted_full = dt.toFormat("YYYY/MM/DD");
 
 	// ブックサーチの2016/06のコミック検索ページ
-	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/1606c.html',  function (err, $, res) {
+	// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/1606c.html',  function (err, $, res) {
+	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'c.html',  function (err, $, res) {
+
+		_$tBody = $('tBody');
+
+	  $(_$tBody.children()).each(function(){
+
+			var _$td = $(this).find('td');
+
+			// 出版社
+			var td_publisher = _$td.eq(0).text();
+
+			// 発売日
+			var td_date = _$td.eq(1).text();
+
+			// 作者
+			var td_writeby = _$td.eq(4).text();
+
+			// タイトル
+			var td_title = _$td.eq(3).text();
+
+			if(td_date == fmt_today){
+				rst_book_text += "出版社：" + td_publisher;
+				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
+				rst_book_text += "タイトル：" + td_title + "\n\r";
+				rst_book_text += "\n\r"
+			}
+
+		});
 
 	  // HTMLタイトルを表示
-	  session.send($('title').text());
+	  session.send(rst_book_text);
 
 	});
 });
