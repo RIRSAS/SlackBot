@@ -183,6 +183,7 @@ dialog.matches((['本']), function(session){
 
 	// 開始文言設定
 	var rst_book_text = "本日発売の本は...\n\r";
+	rst_book_text += "---\n\r";
 
 	// ブックサーチから今月分のページへアクセス
 	// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/1606c.html',  function (err, $, res) {
@@ -210,6 +211,7 @@ dialog.matches((['本']), function(session){
 				rst_book_text += "出版社：" + td_publisher;
 				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
 				rst_book_text += "タイトル：" + td_title + "\n\r";
+				rst_book_text += "---\n\r";
 			}
 
 		});
