@@ -169,7 +169,11 @@ bot.add('/talk/seccond',[
 
 dialog.matches((['本']), function(session){
 
-	dt = new Date();
+	var dtMaster = new Date();
+
+	var dtUTC = dtMaster;
+
+	var dt = dtUTC.addHours(15);
 
 	// 年号取得
 	var	fmt_year = dt.toFormat("YYYY");
