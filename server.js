@@ -171,7 +171,7 @@ var fncTellMe = function(session){
 dialog.matches('今何時', function(session){
 	var dt = new Date();
 
-	var fmt_date = dt.toFormat("YYYYMMDDHHMISS");
+	var fmt_date = dt.toFormat("YYYY/MM/DD HH:MI:SS");
 
 	session.send(fmt_date);
 });
@@ -180,8 +180,11 @@ dialog.matches('コミック', function(session){
 
 	var dtBase = new Date();
 
-	// 北米時間(JST-15)を日本時間に換算
-	var dt = dtBase.addHours(15);
+	// 北米時間(JST-9)を日本時間に換算
+	//var dt = dtBase.addHours(9);
+	//var dt = dtBase;
+	// 1000 * 60 * 60 * 9(hour)
+	var dt = dtBase.setTime(dt.getTime() + 32400000);
 
 	// 年号取得
 	var	fmt_year = dt.toFormat("YYYY");
