@@ -168,6 +168,14 @@ var fncTellMe = function(session){
 		}
 	};
 
+dialog.matches('今何時', function(session){
+	var dt = new Date();
+
+	var fmt_date = dt.toFormat("YYYYMMDDHHMISS");
+
+	session.send(fmt_date);
+});
+
 dialog.matches('コミック', function(session){
 
 	var dtBase = new Date();
