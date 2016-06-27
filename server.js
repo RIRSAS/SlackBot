@@ -197,7 +197,7 @@ dialog.matches('コミック', function(session){
 	var url_now = fmt_year.slice(-2) + fmt_month;
 
 	// 当日日付取得用
-	var fmt_today = fmt_month + "/" + fmt_day;
+	var fmt_today = dt.toFormat("YYYY/MM/DD HH:MI:SS");
 
 	// 開始文言設定
 	var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
