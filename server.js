@@ -181,10 +181,8 @@ dialog.matches('コミック', function(session){
 	var dtBase = new Date();
 
 	// 北米時間(JST-9)を日本時間に換算
-	//var dt = dtBase.addHours(9);
+	var dt = dtBase.addHours(9);
 	//var dt = dtBase;
-	// 1000 * 60 * 60 * 9(hour)
-	var dt = dtBase.setTime(dt.getTime() + 32400000);
 
 	// 年号取得
 	var	fmt_year = dt.toFormat("YYYY");
