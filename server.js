@@ -228,6 +228,106 @@ dialog.matches('今何時', function(session){
 	session.send(fmt_date);
 });
 
+dialog.matches('book', [
+	function(session){
+		session.beginDialog('/book/select');
+	},
+	function(session){
+		if(session.userData.book == 'comic'){
+			session.userData.booktype = 'c';
+			// session.send(session.userData.booktype);
+		} else if(session.userData.book == 'novel') {
+			session.userData.booktype = 'b';
+		}
+	},
+	function(session, results){
+		session.beginDialog('/book/search');
+	}
+]);
+
+bot.add('/book/select', [
+	function(session){
+		// builder.Prompts.choice(session, "select menu", "comic|novel");
+		builder.Prompts.text(session, "select menu comic|novel");
+	},
+	function(session, results){
+		session.userData.book = results.response;
+		session.endDialog();
+	}
+]);
+
+bot.add('/book/search', function(session){
+
+	var dtBase = new Date();
+
+	// 北米時間(JST-9)を日本時間に換算
+	var dt = dtBase.addHours(9);
+	//var dt = dtBase;
+
+	// 年号取得
+	var	fmt_year = dt.toFormat("YYYY");
+
+	// 月を取得
+	var fmt_month = dt.toFormat("MM");
+
+	// 日付を取得
+	var fmt_day = dt.toFormat("DD");
+
+	// URL用年月取得
+	var url_now = fmt_year.slice(-2) + fmt_month;
+
+	// 当日日付取得用
+	var fmt_today = fmt_month + "/" + fmt_day;
+
+	var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
+
+	// c:comic b:novel
+	var book_type = session.userData.booktype;
+
+	// 開始文言設定
+	// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
+	var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
+	rst_book_text += "---\n\r";
+
+	// ブックサーチから今月分のページへアクセス
+	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now +'b.html',  function (err, $, res) {
+
+		_$tBody = $('tBody');
+
+	 	$(_$tBody.children()).each(function(){
+
+			var _$td = $(this).find('td');
+
+			// 出版社
+			var td_publisher = _$td.eq(0).text();
+
+			// 発売日
+			var td_date = _$td.eq(1).text();
+
+			// 作者
+			var td_writeby = _$td.eq(4).text();
+
+			// タイトル
+			var td_title = _$td.eq(3).text();
+
+			// 結果文字列をセット
+			if(td_date == fmt_today){
+				rst_book_text += "出版社：" + td_publisher;
+				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
+				rst_book_text += "タイトル：" + td_title + "\n\r";
+				rst_book_text += "---\n\r";
+			}
+
+		});
+
+	 	rst_book_text += "以上です！";
+
+		// HTMLタイトルを表示
+		session.send(rst_book_text);
+
+	});
+});
+
 dialog.matches('コミック', function(session){
 
 	var dtBase = new Date();
@@ -296,6 +396,76 @@ dialog.matches('コミック', function(session){
 
 	});
 });
+
+dialog.matches('小説', function(session){
+
+	var dtBase = new Date();
+
+	// 北米時間(JST-9)を日本時間に換算
+	var dt = dtBase.addHours(9);
+	//var dt = dtBase;
+
+	// 年号取得
+	var	fmt_year = dt.toFormat("YYYY");
+
+	// 月を取得
+	var fmt_month = dt.toFormat("MM");
+
+	// 日付を取得
+	var fmt_day = dt.toFormat("DD");
+
+	// URL用年月取得
+	var url_now = fmt_year.slice(-2) + fmt_month;
+
+	// 当日日付取得用
+	var fmt_today = fmt_month + "/" + fmt_day;
+
+	var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
+
+	// 開始文言設定
+	// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
+	var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
+	rst_book_text += "---\n\r";
+
+	// ブックサーチから今月分のページへアクセス
+	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'b.html',  function (err, $, res) {
+
+		_$tBody = $('tBody');
+
+	 	$(_$tBody.children()).each(function(){
+
+			var _$td = $(this).find('td');
+
+			// 出版社
+			var td_publisher = _$td.eq(0).text();
+
+			// 発売日
+			var td_date = _$td.eq(1).text();
+
+			// 作者
+			var td_writeby = _$td.eq(4).text();
+
+			// タイトル
+			var td_title = _$td.eq(3).text();
+
+			// 結果文字列をセット
+			if(td_date == fmt_today){
+				rst_book_text += "出版社：" + td_publisher;
+				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
+				rst_book_text += "タイトル：" + td_title + "\n\r";
+				rst_book_text += "---\n\r";
+			}
+
+		});
+
+	 	rst_book_text += "以上です！";
+
+		// HTMLタイトルを表示
+		session.send(rst_book_text);
+
+	});
+});
+
 
 bot.add('/', dialog);
 
