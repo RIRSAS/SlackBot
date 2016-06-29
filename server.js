@@ -120,6 +120,42 @@ dialog.matches('4gamer',
 	}
 );
 
+dialog.matches('nyaa',
+	function(session){
+
+		// 個別の記事へのリンクの親ページ
+		var url_base = 'http://sukebei.nyaa.se/?cats=8_0';
+
+		// 4gamerのトップページへアクセス
+		client.fetch(url_base,  function (err, $, res) {
+
+		 var resultTextNyaa = "nyaa_videoの1ページ目は...\n\r";
+		 resultTextNyaa += "---\n\r";
+		 
+		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
+		// $('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
+		$('table.tlist > tr.tlistrow > td.tlistname > a').each(function(){
+
+			var titleText = $(this).text();
+			var targetUrl = $(this).attr('href');
+
+			// タイトル リンクURLの順で結果文字列に追加
+			resultTextNyaa += titleText + "\n\r";
+		 	resultTextNyaa += targetUrl + "\n\r";
+		 	resultTextNyaa += "---\n\r";
+
+		});
+
+		 // 取得終了を発言
+		 resultTextNyaa += "以上です!"
+
+		 // ユーザへ結果を送信
+		 session.send(resultTextNyaa);
+
+		});
+	}
+);
+
 dialog.matches('会話',
 	// function(session){
 	// 	session.beginDialog('/talk/replace');		
