@@ -120,14 +120,66 @@ dialog.matches('4gamer',
 	}
 );
 
-dialog.matches('会話しよう',[
+dialog.matches('会話',
+	// function(session){
+	// 	session.beginDialog('/talk/replace');		
+	// }
+	[
 	function(session){
-		fncTellMe(session);		
+		// fncTellMe();
+		builder.Prompts.choice(session, 'select!','ok|no');
+	},
+	function(session, results){
+		// fncTellMe();
+		if(result.response&&results.entity != 'ok'){
+			session.beginDialog('/talk/replace');
+			// session.userData.seccond = results.response;
+		} else {
+			// session.endDialog();
+			session.send(sessiom.userData.entity);
+		}
+	},
+	function(session, results){
+		// if(!session.userData.seccond){
+		// 	session.replaceDialog('/talk/replace');
+		// } else {
+		// 	session.endDialog();
+		// }
+		session.replaceDialog('/talk/replace');
+
 	}
-	, function(session){
-		fncTellMe(session);
+]
+);
+
+bot.add('/talk/replace',//[
+	function(session){
+		session.userData.seccond = 'ok';
+		session.endDialog();
 	}
-]);
+	// function(session){
+	// 	// fncTellMe();
+	// 	builder.Prompts.text(session, 'Plz tell me about seccond gram!');
+	// }
+	// ,function(session, results){
+	// 	// fncTellMe();
+	// 	if(results.response == "ok"){
+	// 		session.userData.seccond = results.response;
+	// 	} else {
+	// 		// session.endDialog();
+	// 		session.send(sessiom.userData.seccond);
+	// 	}
+	// }
+	// ,function(session, results){
+	// 	// if(!session.userData.seccond){
+	// 	// 	session.replaceDialog('/talk/replace');
+	// 	// } else {
+	// 	// 	session.endDialog();
+	// 	// }
+	// 	session.replaceDialog('/talk/replace');
+
+	// }
+// ]
+);
 
 dialog.matches('resetUserData',function(session){
 	session.userData.first = null;
