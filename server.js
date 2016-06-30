@@ -85,6 +85,101 @@ dialog.matches('ニュース',
 	}
 );
 
+// ストックしている結果を表示
+dialog.matches(['次','tugi','つぎ','next'], function(session){
+
+	var sendText = '';
+
+	// 返信文字列生成
+	var responseText = function(){
+
+		var resultArray = {};
+
+		// userData.stockがある場合にtitleとurlを取得
+		if(session.userData.stock){
+			if(session.userData.stock.length != 0){
+				resultArray = session.userData.stock[0];
+				sendText += resultArray.title + "\n\r";
+
+				if(resultArray.url != ""){
+					sendText += resultArray.url + "\n\r";					
+				}
+
+				session.userData.stock.shift();
+			}
+		} else {
+			sendText = "ストックしている結果がありません！";
+		}		
+	};
+
+	// いちどに5記事読み込み
+	for(var i = 0; i < 5; i++){
+		responseText();
+	}
+
+	// userData.stockの実体がない or 最後の項目までshiftした
+	if(session.userData.stock&&session.userData.stock.length == 0){
+		session.userData.stock = null;
+		sendText += "\n\r以上です！";
+	}
+
+	session.send(sendText);
+
+});
+
+// ストックしている結果を表示(すべて)
+dialog.matches(['全部','ぜんぶ','all'], function(session){
+
+	var sendText = '';
+
+	// 返信文字列生成
+	var responseText = function(){
+
+		var resultArray = {};
+
+		// userData.stockがある場合にtitleとurlを取得
+		if(session.userData.stock){
+			if(session.userData.stock.length != 0){
+				resultArray = session.userData.stock[0];
+				sendText += resultArray.title + "\n\r";
+
+				if(resultArray.url != ""){
+					sendText += resultArray.url + "\n\r";					
+				}
+
+				session.userData.stock.shift();
+			}
+		} else {
+			sendText = "ストックしている結果がありません！";
+		}		
+	};
+
+	// いちどに5記事読み込み
+	for(var i = 0; i < 5; i++){
+		responseText();
+	}
+
+	// userData.stockの実体がない or 最後の項目までshiftした
+	if(session.userData.stock&&session.userData.stock.length == 0){
+		session.userData.stock = null;
+		sendText += "\n\r以上です！";
+	}
+
+	session.send(sendText);
+
+});
+
+//　結果ストック用
+var responseStorage = function(session, title_text, url_text){
+	var response_object = { title:title_text, url:url_text};
+
+	if(session.userData.stock){
+		session.userData.stock.push(response_object);
+	} else {
+		session.userData.stock = [response_object];
+	}
+}
+
 dialog.matches('4gamer',
 	function(session){
 
@@ -107,6 +202,11 @@ dialog.matches('4gamer',
 			resultText4gamer += titleText + "\n\r";
 		 	resultText4gamer += url_base + targetUrl + "\n\r";
 		 	resultText4gamer += "---\n\r";
+
+		 	var titleTXT = titleText + "\n\r";
+		 	var urlTXT = url_base + targetUrl + "\n\r" + "---\n\r";;
+
+		 	responseStorage(session, titleTXT, urlTXT);
 
 		});
 
@@ -131,6 +231,8 @@ dialog.matches('nyaa',
 
 		 var resultTextNyaa = "nyaa_videoの1ページ目は...\n\r";
 		 resultTextNyaa += "---\n\r";
+
+		 responseStorage(session, resultsTextNyaa, '');
 		 
 		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
 		// $('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
@@ -143,15 +245,13 @@ dialog.matches('nyaa',
 			var _$td_tlistdownload = $(this).find('td.tlistdownload');
 			var _$a_tlistdownload = _$td_tlistdownload.find('a').attr('href');
 
-			// var titleText = $(this).text();
-			// var targetUrl = $(this).attr('href');
-
 			// タイトル リンクURLの順で結果文字列に追加
-			// resultTextNyaa += titleText + "\n\r";
-		 	//	resultTextNyaa += "https" + targetUrl + "\n\r";
 			resultTextNyaa += _$a_tlistname + "\n\r";
 		 	resultTextNyaa += "https:" + _$a_tlistdownload + "\n\r";
 		 	resultTextNyaa += "---\n\r";
+
+		 	var resultTXT = _$a_tlistname + "\n\r";
+		 	var urlTXT = "https:" + _$a_tlistdownload + "\n\r";
 
 		});
 
@@ -176,7 +276,7 @@ dialog.matches('会話',
 	},
 	function(session, results){
 		// fncTellMe();
-		if(result.response&&results.entity != 'ok'){
+		if(result.response&&(results.response.entity != 1)){
 			session.beginDialog('/talk/replace');
 			// session.userData.seccond = results.response;
 		} else {
@@ -264,6 +364,25 @@ var fncTellMe = function(session){
 		
 		}
 	};
+
+dialog.matches('choice', [
+	function(session){
+		session.beginDialog('/choicetest');
+	},
+	function(session){
+		session.send(session.userData.choice);
+	}
+]);
+
+bot.add('/choicetest', [
+	function(session){
+		builder.Prompts.choice(session, "select","red|blue|green");
+	},
+	function(session, results){
+		session.userData.choice = results.response.entity;
+		session.endDialog();
+	}	
+]);
 
 dialog.matches('今何時', function(session){
 	var dt = new Date();
