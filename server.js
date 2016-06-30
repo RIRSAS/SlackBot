@@ -134,14 +134,23 @@ dialog.matches('nyaa',
 		 
 		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
 		// $('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
-		$('table.tlist > tr.tlistrow > td.tlistname > a').each(function(){
+		// $('table.tlist > tr.tlistrow > td.tlistname > a').each(function(){
+		$('table.tlist > tr.tlistrow').each(function(){
 
-			var titleText = $(this).text();
-			var targetUrl = $(this).attr('href');
+			var _$td_tlistname = $(this).find('td.tlistname');
+			var _$a_tlistname = _$td_tlistname.find('a').text();
+
+			var _$td_tlistdownload = $(this).find('td.tlistdownload');
+			var _$a_tlistdownload = _$td_tlistdownload.find('a').attr('href');
+
+			// var titleText = $(this).text();
+			// var targetUrl = $(this).attr('href');
 
 			// タイトル リンクURLの順で結果文字列に追加
-			resultTextNyaa += titleText + "\n\r";
-		 	resultTextNyaa += targetUrl + "\n\r";
+			// resultTextNyaa += titleText + "\n\r";
+		 	//	resultTextNyaa += "https" + targetUrl + "\n\r";
+			resultTextNyaa += _$a_tlistname + "\n\r";
+		 	resultTextNyaa += "https:" + _$a_tlistdownload + "\n\r";
 		 	resultTextNyaa += "---\n\r";
 
 		});
