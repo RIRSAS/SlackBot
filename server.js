@@ -256,7 +256,7 @@ dialog.matches('nyaa',
 		});
 
 		 // 取得終了を発言
-		 resultTextNyaa += "以上です!"
+		 resultTextNyaa += "以上です!";
 
 		 // ユーザへ結果を送信
 		 session.send(resultTextNyaa);
