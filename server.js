@@ -232,7 +232,7 @@ dialog.matches('nyaa',
 		 var resultTextNyaa = "nyaa_videoの1ページ目は...\n\r";
 		 resultTextNyaa += "---\n\r";
 
-		 responseStorage(session, resultsTextNyaa, '');
+		 responseStorage(session, resultTextNyaa, '');
 		 
 		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
 		// $('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
