@@ -113,7 +113,7 @@ dialog.matches(['次','tugi','つぎ','next'], function(session){
 	};
 
 	// いちどに5記事読み込み
-	for(var i = 0; i < 5; i++){
+	for(var i = 0; i < 10; i++){
 		responseText();
 	}
 
@@ -191,6 +191,8 @@ dialog.matches('4gamer',
 
 		 var resultText4gamer = "4Gamerの新着ニュースは...\n\r";
 		 resultText4gamer += "---\n\r";
+
+	 	responseStorage(session, resultText4gamer, '');
 		 
 		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
 		$('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
@@ -211,10 +213,10 @@ dialog.matches('4gamer',
 		});
 
 		 // 取得終了を発言
-		 resultText4gamer += "以上です!"
+		resultText4gamer += "以上です!"
 
-		 // ユーザへ結果を送信
-		 session.send(resultText4gamer);
+		// ユーザへ結果を送信
+		session.send(resultText4gamer);
 
 		});
 	}
