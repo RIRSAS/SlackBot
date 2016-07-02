@@ -85,77 +85,57 @@ dialog.matches('ニュース',
 	}
 );
 
+var array_next = ['次','つぎ','tugi','next'];
+var array_all = ['全部','全て','ぜんぶ','すべて','zennbu','subete','all'];
+var array_gateway = array_next.concat(array_all);
+
 // ストックしている結果を表示
-dialog.matches(['次','tugi','つぎ','next'], function(session){
+dialog.matches(array_gateway, function(session){
 
 	var sendText = '';
 
 	// 返信文字列生成
 	var responseText = function(){
 
-		var resultArray = {};
+	var resultArray = {};
 
-		// userData.stockがある場合にtitleとurlを取得
-		if(session.userData.stock){
-			if(session.userData.stock.length != 0){
-				resultArray = session.userData.stock[0];
-				sendText += resultArray.title + "\n\r";
+	// userData.stockがある場合にtitleとurlを返信文字列にセット
+	if(session.userData.stock){
+		if(session.userData.stock.length != 0){
+			resultArray = session.userData.stock[0];
+			sendText += resultArray.title + "\n\r";
 
-				if(resultArray.url != ""){
-					sendText += resultArray.url + "\n\r";					
-				}
-
-				session.userData.stock.shift();
+			// urlは無しの場合もある
+			if(resultArray.url != ""){
+				sendText += resultArray.url + "\n\r";					
 			}
-		} else {
-			sendText = "ストックしている結果がありません！";
-		}		
-	};
 
-	// いちどに5記事読み込み
-	for(var i = 0; i < 10; i++){
-		responseText();
+			// 取り出し済みのストック(先頭)を消す
+			session.userData.stock.shift();
+		}
+	} else {
+		sendText = "ストックがもうありません！";
+	}		
+};
+
+	// ループ回数
+	var num_loop = 0;
+
+	// n個づつ表示 else if すべて表示
+	if (array_next.indexOf(session.message.text) >= 0) {
+		num_loop = 10;
+	} else if(array_all.indexOf(session.message.text) >= 0) {
+		// ストック自体されているか？
+		if(session.userData.stock){
+			num_loop = session.userData.stock.length;
+		} else {
+			// ストックが無いむねだけ表示
+			num_loop = 1;
+		}
 	}
 
-	// userData.stockの実体がない or 最後の項目までshiftした
-	if(session.userData.stock&&session.userData.stock.length == 0){
-		session.userData.stock = null;
-		sendText += "\n\r以上です！";
-	}
-
-	session.send(sendText);
-
-});
-
-// ストックしている結果を表示(すべて)
-dialog.matches(['全部','ぜんぶ','all'], function(session){
-
-	var sendText = '';
-
-	// 返信文字列生成
-	var responseText = function(){
-
-		var resultArray = {};
-
-		// userData.stockがある場合にtitleとurlを取得
-		if(session.userData.stock){
-			if(session.userData.stock.length != 0){
-				resultArray = session.userData.stock[0];
-				sendText += resultArray.title + "\n\r";
-
-				if(resultArray.url != ""){
-					sendText += resultArray.url + "\n\r";					
-				}
-
-				session.userData.stock.shift();
-			}
-		} else {
-			sendText = "ストックしている結果がありません！";
-		}		
-	};
-
-	// いちどに5記事読み込み
-	for(var i = 0; i < 5; i++){
+	// 回数分表示
+	for(var i = 0; i < num_loop; i++){
 		responseText();
 	}
 
@@ -180,8 +160,39 @@ var responseStorage = function(session, title_text, url_text){
 	}
 }
 
-dialog.matches('4gamer',
+dialog.matches('ストック数', function(session){
+
+	var response_msg = "";	
+
+	var num_stock =	responseLength(session);
+
+	response_msg = "いま" + num_stock + "件ストックされています！" ;
+
+	session.send(response_msg);
+});
+
+var responseLength = function(session){
+
+	var num_stock = 0;
+
+	if(session.userData.stock){
+		num_stock = session.userData.stock.length;
+	}
+
+	return num_stock;
+}
+
+dialog.matches('4gamer',[
 	function(session){
+		session.beginDialog('/4g/filter');
+	},
+	function(session){
+
+		var category_name = '';
+
+		if(session.userData.selected_tag){
+			category_name = session.userData.selected_tag;
+		}
 
 		// 個別の記事へのリンクの親ページ
 		var url_base = 'http://www.4gamer.net';
@@ -189,38 +200,158 @@ dialog.matches('4gamer',
 		// 4gamerのトップページへアクセス
 		client.fetch('http://www.4gamer.net/',  function (err, $, res) {
 
-		 var resultText4gamer = "4Gamerの新着ニュースは...\n\r";
+		var resultText4gamer = '';
+
+		if(category_name != ''){
+			resultText4gamer += "4Gamer・" + category_name + "カテゴリーの新着ニュースは...\n\r";
+		} else {
+			resultText4gamer += "4Gamerの新着ニュースは...\n\r";
+		}
+
 		 resultText4gamer += "---\n\r";
 
-	 	responseStorage(session, resultText4gamer, '');
-		 
-		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
-		$('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
+		 var response_msg = "";
 
-			var titleText = $(this).text();
-			var targetUrl = $(this).attr('href');
+		// ストック初期化
+		session.userData.stock = null;
 
-			// タイトル リンクURLの順で結果文字列に追加
-			resultText4gamer += titleText + "\n\r";
-		 	resultText4gamer += url_base + targetUrl + "\n\r";
-		 	resultText4gamer += "---\n\r";
+		try {
+			// 先頭ストック格納 urlは無しでセット
+		 	responseStorage(session, resultText4gamer, '');
+			 
+			// id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
+			// $('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
+			// id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ
+			$('div#NEWS_SELECT_DAY_1 > div').each(function(){
 
-		 	var titleTXT = titleText + "\n\r";
-		 	var urlTXT = url_base + targetUrl + "\n\r" + "---\n\r";;
+				// 記事
+				var _$a_target = $(this).find('h2').find('a');
 
-		 	responseStorage(session, titleTXT, urlTXT);
+				// 記事タイトル
+				var titleText = _$a_target.text();
 
-		});
+				// 記事リンクURL
+				var targetUrl = _$a_target.attr('href');
 
-		 // 取得終了を発言
-		resultText4gamer += "以上です!"
+			 	var titleTXT = titleText + "\n\r";
+			 	var urlTXT = url_base + targetUrl + "\n\r" + "---\n\r";;
 
-		// ユーザへ結果を送信
-		session.send(resultText4gamer);
+			 	// フィルターありなら実行
+			 	if (session.userData.filter!=''){
+
+				 	// カテゴリー
+					var _$div_tag = $(this).find('div.V2_article_tag');
+
+					// 複数のカテゴリー
+					var _$a_tag = _$div_tag.find('a');
+
+					_$a_tag.each(function(){
+
+						// カテゴリーそれぞれのhref要素にアクセス
+						var _$a_href_tag = $(this).attr('href');
+
+						// choiceで選択したカテゴリーと合致した場合のみストックへプッシュする
+						if(_$a_href_tag==session.userData.filter){
+							responseStorage(session, titleTXT, urlTXT);
+						}
+					});
+			 	} else {
+					responseStorage(session, titleTXT, urlTXT);
+			 	}
+
+			});
+
+			// 先頭の説明テキストを除いた件数
+			var num_stock = responseLength(session) - 1;
+
+			response_msg = num_stock + "件の記事をストックしました！";
+
+		} catch (e) {
+			// ストックを初期化する
+			session.userData.stock = null;
+
+			// エラー終了
+			response_msg = "検索結果をストックするのに失敗しました...";
+		}
+
+		// choceで選択したフィルターの削除
+		session.userData.filter = null;
+		session.userData.selected_tag = null;
+
+		session.send(response_msg);
 
 		});
 	}
-);
+]);
+
+// 4gamer検索用choice
+bot.add('/4g/filter', [
+	function(session){
+		builder.Prompts.choice(session, "検索したいカテゴリーを選択してください！", 
+			"全て|PS4|PS3|PS Vita|3DS|PC|Android|iPhone|iPad|ARCADE|HARDWARE|紹介記事|連載|攻略");
+	},
+	function(session, results){
+
+		// デフォルトではフィルターなし(全件検索)の意
+		var article_tag = '';
+		var name_tag = '';
+
+		// カテゴリー舞のhref要素
+		if(results.response){
+			switch(results.response.entity){
+				case 'PS4':
+					article_tag = '/tags/TS/TS024/';
+					break;
+				case 'PS3':
+					article_tag = '/tags/TS/TS007/';
+					break;
+				case 'PS Vita':
+					article_tag = '/tags/TS/TS021/';
+					break;
+				case '3DS':
+					article_tag = '/tags/TS/TS018/';
+					break;
+				case 'PC':
+					article_tag = '/tags/TS/TS001/';
+					break;
+				case 'Android':
+					article_tag = '/tags/TS/TS019/';
+					break;
+				case 'iPhone':
+					article_tag = '/tags/TS/TS013/';
+					break;
+				case 'iPad':
+					article_tag = '/tags/TS/TS014/';
+					break;
+				case 'ARCADE':
+					article_tag = '/tags/TS/TS015/';
+					break;
+				case 'HARDWARE':
+					article_tag = '/tags/TS/TS002/';
+					break;
+				case '紹介記事':
+					article_tag = '/tags/TN/TN017/';
+					break;
+				case '連載':
+					article_tag = '/tags/TN/TN009/';
+					break;
+				case '攻略':
+					article_tag = '/tags/TN/TN010/';
+					break;
+				default:
+					break;
+			}
+
+			name_tag = results.response.entity; 
+
+		}
+
+		// userDataに検索用タグをセット
+		session.userData.filter = article_tag;
+		session.userData.selected_tag = name_tag;
+		session.endDialog();
+	}
+]);
 
 dialog.matches('nyaa',
 	function(session){
