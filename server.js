@@ -97,26 +97,26 @@ dialog.matches(array_gateway, function(session){
 	// 返信文字列生成
 	var responseText = function(){
 
-	var resultArray = {};
+		var resultArray = {};
 
-	// userData.stockがある場合にtitleとurlを返信文字列にセット
-	if(session.userData.stock){
-		if(session.userData.stock.length != 0){
-			resultArray = session.userData.stock[0];
-			sendText += resultArray.title + "\n\r";
+		// userData.stockがある場合にtitleとurlを返信文字列にセット
+		if(session.userData.stock){
+			if(session.userData.stock.length != 0){
+				resultArray = session.userData.stock[0];
+				sendText += resultArray.title + "\n\r";
 
-			// urlは無しの場合もある
-			if(resultArray.url != ""){
-				sendText += resultArray.url + "\n\r";					
+				// urlは無しの場合もある
+				if(resultArray.url != ""){
+					sendText += resultArray.url + "\n\r";					
+				}
+
+				// 取り出し済みのストック(先頭)を消す
+				session.userData.stock.shift();
 			}
-
-			// 取り出し済みのストック(先頭)を消す
-			session.userData.stock.shift();
-		}
-	} else {
-		sendText = "ストックがもうありません！";
-	}		
-};
+		} else {
+			sendText = "ストックがもうありません！";
+		}		
+	};
 
 	// ループ回数
 	var num_loop = 0;
@@ -353,16 +353,36 @@ bot.add('/4g/filter', [
 	}
 ]);
 
-dialog.matches('nyaa',
+dialog.matches('nyaa', [
+	function(session){
+		session.beginDialog('/ny/search_word');
+	},
+	function(session){
+		session.beginDialog('/ny/filter');
+	},
 	function(session){
 
 		// 個別の記事へのリンクの親ページ
-		var url_base = 'http://sukebei.nyaa.se/?cats=8_0';
+		// var url_base = 'http://sukebei.nyaa.se/?cats=8_0';
 
-		// 4gamerのトップページへアクセス
-		client.fetch(url_base,  function (err, $, res) {
+		var url_base = '';
 
-		 var resultTextNyaa = "nyaa_videoの1ページ目は...\n\r";
+		// 通常と18禁のURL分類
+		if(session.userData.selected_tag == 'Nコミック' || session.userData.selected_tag == 'Nアニメ'){
+			url_base = 'https://www.nyaa.se';
+		} else {
+			url_base = 'http://sukebei.nyaa.se';
+		}
+
+		// var url_base = 'http://sukebei.nyaa.se';
+
+		// Nyaaに検索ワード込みでアクセスのトップページへアクセス
+		client.fetch(url_base, { page:'search', cats:session.userData.filter, filter:'0', term:session.userData.search_word},  function (err, $, res) {
+
+		// ストック先のクリア
+		session.userData.stock = null;
+
+		 var resultTextNyaa = "nyaaでの検索結果は...\n\r";
 		 resultTextNyaa += "---\n\r";
 
 		 responseStorage(session, resultTextNyaa, '');
@@ -379,24 +399,144 @@ dialog.matches('nyaa',
 			var _$a_tlistdownload = _$td_tlistdownload.find('a').attr('href');
 
 			// タイトル リンクURLの順で結果文字列に追加
-			resultTextNyaa += _$a_tlistname + "\n\r";
-		 	resultTextNyaa += "https:" + _$a_tlistdownload + "\n\r";
-		 	resultTextNyaa += "---\n\r";
+			// resultTextNyaa += _$a_tlistname + "\n\r";
+		 // 	resultTextNyaa += "https:" + _$a_tlistdownload + "\n\r";
+		 // 	resultTextNyaa += "---\n\r";
 
+		 	// タイトル
 		 	var resultTXT = _$a_tlistname + "\n\r";
-		 	var urlTXT = "https:" + _$a_tlistdownload + "\n\r";
+
+		 	// ダウンロードリンク
+		 	var urlTXT = "https:" + _$a_tlistdownload + "\n\r" + "---\n\r";
+
+		 	responseStorage(session, resultTXT, urlTXT);
 
 		});
 
-		 // 取得終了を発言
-		 resultTextNyaa += "以上です!";
+		// ストック数取得
+		var num_stock = responseLength(session) - 1;
 
-		 // ユーザへ結果を送信
-		 session.send(resultTextNyaa);
+		session.send(num_stock + "件ストックしました！");		
+
+		 // // 取得終了を発言
+		 // resultTextNyaa += "以上です!";
+
+		 // // ユーザへ結果を送信
+		 // session.send(resultTextNyaa);
 
 		});
 	}
-);
+]);
+
+bot.add('/ny/search_word', [
+	function(session){
+		builder.Prompts.text(session, "検索ワードを入力してください！");
+	},
+	function(session, results){
+		session.userData.search_word = results.response;
+		session.endDialog();
+	}
+]);
+
+bot.add('/ny/filter', [
+	function(session){
+		builder.Prompts.choice(session, "検索したいカテゴリーを選択してください！", 
+			"Nコミック|Nアニメ|Aコミック|Aアニメ|Aゲーム|A実写");
+	},
+	function(session, results){
+
+		// デフォルトではフィルターなし(全件検索)の意
+		var article_tag = '';
+		var name_tag = '';
+
+		// カテゴリー舞のhref要素
+		if(results.response){
+			switch(results.response.entity){
+				case 'Nコミック':
+					article_tag = '2_0';
+					break;
+				case 'Nアニメ':
+					article_tag = '1_0';
+					break;
+				case 'Aコミック':
+					article_tag = '7_26';
+					break;
+				case 'Aアニメ':
+					article_tag = '7_25';
+					break;
+				case 'Aゲーム':
+					article_tag = '7_27';
+					break;
+				case 'A実写':
+					article_tag = '8_0';
+					break;
+				default:
+					break;
+			}
+
+			name_tag = results.response.entity; 
+
+		}
+
+		// userDataに検索用タグをセット
+		session.userData.filter = article_tag;
+		session.userData.selected_tag = name_tag;
+		session.endDialog();
+	}
+]);
+
+// dialog.matches('nyaa',
+// 	function(session){
+
+// 		// 個別の記事へのリンクの親ページ
+// 		var url_base = 'http://sukebei.nyaa.se/?cats=8_0';
+
+// 		// 4gamerのトップページへアクセス
+// 		client.fetch(url_base,  function (err, $, res) {
+
+// 		session.userData.stock = null;
+
+// 		 var resultTextNyaa = "nyaa_videoの1ページ目は...\n\r";
+// 		 resultTextNyaa += "---\n\r";
+
+// 		 responseStorage(session, resultTextNyaa, '');
+		 
+// 		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
+// 		// $('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
+// 		// $('table.tlist > tr.tlistrow > td.tlistname > a').each(function(){
+// 		$('table.tlist > tr.tlistrow').each(function(){
+
+// 			var _$td_tlistname = $(this).find('td.tlistname');
+// 			var _$a_tlistname = _$td_tlistname.find('a').text();
+
+// 			var _$td_tlistdownload = $(this).find('td.tlistdownload');
+// 			var _$a_tlistdownload = _$td_tlistdownload.find('a').attr('href');
+
+// 			// タイトル リンクURLの順で結果文字列に追加
+// 			// resultTextNyaa += _$a_tlistname + "\n\r";
+// 		 // 	resultTextNyaa += "https:" + _$a_tlistdownload + "\n\r";
+// 		 // 	resultTextNyaa += "---\n\r";
+
+// 		 	var resultTXT = _$a_tlistname + "\n\r";
+// 		 	var urlTXT = "https:" + _$a_tlistdownload + "\n\r" + "---\n\r";
+
+// 		 	responseStorage(session, resultTXT, urlTXT);
+
+// 		});
+
+// 		var num_stock = responseLength(session) - 1;
+
+// 		session.send(num_stock + "件ストックしました！");		
+
+// 		 // // 取得終了を発言
+// 		 // resultTextNyaa += "以上です!";
+
+// 		 // // ユーザへ結果を送信
+// 		 // session.send(resultTextNyaa);
+
+// 		});
+// 	}
+// );
 
 dialog.matches('会話',
 	// function(session){
@@ -429,34 +569,11 @@ dialog.matches('会話',
 ]
 );
 
-bot.add('/talk/replace',//[
+bot.add('/talk/replace',
 	function(session){
 		session.userData.seccond = 'ok';
 		session.endDialog();
 	}
-	// function(session){
-	// 	// fncTellMe();
-	// 	builder.Prompts.text(session, 'Plz tell me about seccond gram!');
-	// }
-	// ,function(session, results){
-	// 	// fncTellMe();
-	// 	if(results.response == "ok"){
-	// 		session.userData.seccond = results.response;
-	// 	} else {
-	// 		// session.endDialog();
-	// 		session.send(sessiom.userData.seccond);
-	// 	}
-	// }
-	// ,function(session, results){
-	// 	// if(!session.userData.seccond){
-	// 	// 	session.replaceDialog('/talk/replace');
-	// 	// } else {
-	// 	// 	session.endDialog();
-	// 	// }
-	// 	session.replaceDialog('/talk/replace');
-
-	// }
-// ]
 );
 
 dialog.matches('resetUserData',function(session){
@@ -525,105 +642,146 @@ dialog.matches('今何時', function(session){
 	session.send(fmt_date);
 });
 
-dialog.matches('book', [
+var book_type = ['コミック','小説'];
+
+dialog.matches('本', [
 	function(session){
-		session.beginDialog('/book/select');
-	},
-	function(session){
-		if(session.userData.book == 'comic'){
-			session.userData.booktype = 'c';
-			// session.send(session.userData.booktype);
-		} else if(session.userData.book == 'novel') {
-			session.userData.booktype = 'b';
-		}
-	},
-	function(session, results){
 		session.beginDialog('/book/search');
-	}
-]);
-
-bot.add('/book/select', [
-	function(session){
-		// builder.Prompts.choice(session, "select menu", "comic|novel");
-		builder.Prompts.text(session, "select menu comic|novel");
 	},
-	function(session, results){
-		session.userData.book = results.response;
-		session.endDialog();
-	}
-]);
+	function(session){
+		var dtBase = new Date();
 
-bot.add('/book/search', function(session){
+		// 北米時間(JST-9)を日本時間に換算
+		var dt = dtBase.addHours(9);
+		//var dt = dtBase;
 
-	var dtBase = new Date();
+		// 年号取得
+		var	fmt_year = dt.toFormat("YYYY");
 
-	// 北米時間(JST-9)を日本時間に換算
-	var dt = dtBase.addHours(9);
-	//var dt = dtBase;
+		// 月を取得
+		var fmt_month = dt.toFormat("MM");
 
-	// 年号取得
-	var	fmt_year = dt.toFormat("YYYY");
+		// 日付を取得
+		var fmt_day = dt.toFormat("DD");
 
-	// 月を取得
-	var fmt_month = dt.toFormat("MM");
+		// URL用年月取得
+		var url_now = fmt_year.slice(-2) + fmt_month;
 
-	// 日付を取得
-	var fmt_day = dt.toFormat("DD");
+		// 当日日付取得用
+		var fmt_today = fmt_month + "/" + fmt_day;
 
-	// URL用年月取得
-	var url_now = fmt_year.slice(-2) + fmt_month;
+		// var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
+		var fmt_full = dt.toFormat('YYYY/MM/DD');
 
-	// 当日日付取得用
-	var fmt_today = fmt_month + "/" + fmt_day;
+		var boot_type = session.userData.filter;
 
-	var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
+		session.userData.stock = null;
 
-	// c:comic b:novel
-	var book_type = session.userData.booktype;
+		// 開始文言設定
+		// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
+		var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
+		rst_book_text += "---\n\r";
 
-	// 開始文言設定
-	// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
-	var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
-	rst_book_text += "---\n\r";
+		responseStorage(session, rst_book_text, '');
 
-	// ブックサーチから今月分のページへアクセス
-	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now +'b.html',  function (err, $, res) {
+		var base_url = '';
 
-		_$tBody = $('tBody');
+		if (session.userData.filter == 'c'|| session.userData.filter == 'b'){
+			base_url = 'http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + session.userData.filter + '.html'
+		} else {
+			base_url = 'http://www.bookservice.jp/layout/bs/common/html/schedule/' + book_type + '.html';
+		}
 
-	 	$(_$tBody.children()).each(function(){
+		// ブックサーチから今月分のページへアクセス
+		// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'c.html',  function (err, $, res) {
+		// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + book_type + '.html',  function (err, $, res) {
+		client.fetch(base_url,  function (err, $, res) {
 
-			var _$td = $(this).find('td');
+			_$tBody = $('tBody');
 
-			// 出版社
-			var td_publisher = _$td.eq(0).text();
+		 	$(_$tBody.children()).each(function(){
 
-			// 発売日
-			var td_date = _$td.eq(1).text();
+				var _$td = $(this).find('td');
 
-			// 作者
-			var td_writeby = _$td.eq(4).text();
+				// 出版社
+				var td_publisher = _$td.eq(0).text();
 
-			// タイトル
-			var td_title = _$td.eq(3).text();
+				// 発売日
+				var td_date = _$td.eq(1).text();
 
-			// 結果文字列をセット
-			if(td_date == fmt_today){
-				rst_book_text += "出版社：" + td_publisher;
-				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
-				rst_book_text += "タイトル：" + td_title + "\n\r";
-				rst_book_text += "---\n\r";
-			}
+				// 作者
+				var td_writeby = _$td.eq(4).text();
 
-		});
+				// タイトル
+				var td_title = _$td.eq(3).text();
 
-	 	rst_book_text += "以上です！";
+				var rst_text = '';
+
+				// 結果文字列をセット
+				if(td_date == fmt_today){
+					rst_text += "出版社：" + td_publisher;
+					rst_text += " / " + "作者：" + td_writeby + "\n\r";
+					rst_text += "タイトル：" + td_title + "\n\r";
+					rst_text += "---\n\r";
+				}
+
+				responseStorage(session, rst_text, '');
+
+			});
+
+		 });
+
+	 	// rst_book_text += "以上です！";
 
 		// HTMLタイトルを表示
-		session.send(rst_book_text);
 
-	});
-});
+		var num_stock = responseLength(session) - 1;
+
+		session.send(num_stock + "件ストックしました！");
+		
+	}
+]);
+
+bot.add('/book/search', [
+	function(session){
+		builder.Prompts.choice(session, "検索したいカテゴリーを選択してください！", "コミック(最新月)|小説(最新月)|コミック|小説");
+	},
+	function(session, results){
+
+		// デフォルトではフィルターなし(全件検索)の意
+		var article_tag = '';
+		var name_tag = '';
+
+		// カテゴリー舞のhref要素
+		if(results.response){
+			switch(results.response.entity){
+				case 'コミック(最新月)':
+					article_tag = 'comic_top';
+					break;
+				case '小説(最新月)':
+					article_tag = 'bunko_top';
+					break;
+				case 'コミック':
+					article_tag = 'c';
+					break;
+				case '小説':
+					article_tag = 'b';
+					break;
+				default:
+					break;
+			}
+
+			name_tag = results.response.entity; 
+
+		}
+
+		// userDataに検索用タグをセット
+		session.userData.filter = article_tag;
+		session.userData.selected_tag = name_tag;
+		session.endDialog();
+
+	}
+]);
 
 dialog.matches('コミック', function(session){
 
@@ -656,7 +814,8 @@ dialog.matches('コミック', function(session){
 	rst_book_text += "---\n\r";
 
 	// ブックサーチから今月分のページへアクセス
-	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'c.html',  function (err, $, res) {
+	// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'c.html',  function (err, $, res) {
+	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/comic_top.html',  function (err, $, res) {
 
 		_$tBody = $('tBody');
 
