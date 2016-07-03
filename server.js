@@ -167,21 +167,36 @@ bot.add('/stock/master', [
 		session.beginDialog('/stock/proc');
 	},
 	function(session){
-		if(session.userData.stock_display != '表示しない'){
+
+		if(session.userData.stock_display != '終了する'){
 			// 終了しないかぎりは文字送信のみ
+			// session.send(session.userData.stock_text);
 			session.send(session.userData.stock_text);
+			session.replaceDialog('/stock/master');
 		} else {
 			// 表示をやめる場合はendDialogを呼び出し
 			session.send('ストック結果の表示を終了します！');
 			session.endDialog();
-		}
+		}			
+
+		// if(session.userData.stock_display != '表示しない'){
+		// 	// 終了しないかぎりは文字送信のみ
+		// 	session.send(session.userData.stock_text);
+		// 	session.replaceDialog('/stock/master');
+		// } else {
+			// 表示をやめる場合はendDialogを呼び出し
+		// }
 	}
 ]);
+
+bot.add('/stock/send', function(session){
+	session.send(session.userData.stock_text);
+});
 
 // ストックしている結果を表示
 bot.add('/stock/disply', [
 	function(session){
-		builder.Prompts.choice(session, "ストックされた結果を表示しますか？", "10件|全件|表示しない");
+		builder.Prompts.choice(session, "ストックされた結果を表示しますか？", "10件|全件|終了する");
 	},
 	function(session, results){
 		session.userData.stock_display = results.response.entity;
@@ -416,6 +431,9 @@ dialog.matches('4gamer',[
 
 		session.send(response_msg);
 
+		// ストックした結果を表示するか確認をとる
+		session.beginDialog('/stock/master');
+
 		});
 	}
 ]);
@@ -553,6 +571,9 @@ dialog.matches(['nyaa','Nyaa'], [
 		var num_stock = responseLength(session) - 1;
 
 		session.send(num_stock + "件ストックしました！");		
+
+		// ストックを表示するかユーザーに確認する
+		session.beginDialog('/stock/master');
 
 		 // // 取得終了を発言
 		 // resultTextNyaa += "以上です!";
@@ -872,6 +893,9 @@ dialog.matches('本', [
 		var num_stock = responseLength(session) - 1;
 
 		session.send(num_stock + "件ストックしました！");
+
+		// ストックを表示するかユーザーへ確認する
+		session.beginDialog('/stock/master');
 		
 	}
 ]);
