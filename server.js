@@ -149,6 +149,142 @@ dialog.matches(array_gateway, function(session){
 
 });
 
+// 繰り返しテスト
+dialog.matches('repeat', 
+	function(session){
+		session.beginDialog('/stock/master');
+	}
+);
+
+// ループ管理用ダイアログ endDialogしない限りループ＿
+bot.add('/stock/master', [
+	function(session){
+		// promptで処理を質問
+		session.beginDialog('/stock/disply');
+	},
+	function(session){
+		// 表示用文字列の取得
+		session.beginDialog('/stock/proc');
+	},
+	function(session){
+		if(session.userData.stock_display != '表示しない'){
+			// 終了しないかぎりは文字送信のみ
+			session.send(session.userData.stock_text);
+		} else {
+			// 表示をやめる場合はendDialogを呼び出し
+			session.send('ストック結果の表示を終了します！');
+			session.endDialog();
+		}
+	}
+]);
+
+// ストックしている結果を表示
+bot.add('/stock/disply', [
+	function(session){
+		builder.Prompts.choice(session, "ストックされた結果を表示しますか？", "10件|全件|表示しない");
+	},
+	function(session, results){
+		session.userData.stock_display = results.response.entity;
+		session.endDialog();
+	}
+]);
+
+bot.add('/stock/proc', function(session){
+		var sendText = '';
+
+		// 返信文字列生成
+		var responseText = function(){
+
+			var resultArray = {};
+
+			// userData.stockがある場合にtitleとurlを返信文字列にセット
+			if(session.userData.stock){
+				if(session.userData.stock.length != 0){
+					resultArray = session.userData.stock[0];
+					sendText += resultArray.title + "\n\r";
+
+					// urlは無しの場合もある
+					if(resultArray.url != ""){
+						sendText += resultArray.url + "\n\r";					
+					}
+
+					// 取り出し済みのストック(先頭)を消す
+					session.userData.stock.shift();
+				}
+			} else {
+				sendText = "ストックがもうありません！";
+			}		
+		};
+
+		// ループ回数
+		var num_loop = 0;
+
+		var display_type = session.userData.stock_display;
+
+		if (display_type == "10件"){
+			num_loop = 10;			
+		} else if(display_type == "全件"){
+			if(session.userData.stock){
+				num_loop = session.userData.stock.length;
+			} else {
+			// ストックが無いむねだけ表示
+				num_loop = 1;
+			}
+		}
+
+		// // n個づつ表示 else if すべて表示
+		// if (array_next.indexOf(session.message.text) >= 0) {
+		// 	num_loop = 10;
+		// } else if(array_all.indexOf(session.message.text) >= 0) {
+		// 	// ストック自体されているか？
+		// 	if(session.userData.stock){
+		// 		num_loop = session.userData.stock.length;
+		// 	} else {
+		// 		// ストックが無いむねだけ表示
+		// 		num_loop = 1;
+		// 	}
+		// }
+
+		// 回数分表示
+		for(var i = 0; i < num_loop; i++){
+			responseText();
+		}
+
+		// userData.stockの実体がない or 最後の項目までshiftした
+		if(session.userData.stock&&session.userData.stock.length == 0){
+			session.userData.stock = null;
+			sendText += "\n\r以上です！";
+		}
+
+		session.userData.stock_text = sendText;
+		session.endDialog();
+		// session.send(sendText);
+});
+
+dialog.matches('retry', 
+	function(session){
+		session.beginDialog('/common/retry');
+	}
+);
+
+bot.add('/common/retry', [
+	function(session){
+		builder.Prompts.choice(session, "次の結果を表示しますか?", "OK|NG");
+	},
+	function(session, results){
+		if(results.response){
+			session.userData.retry = results.response.entity;
+			if(results.response.entity != 'OK'){
+				session.endDialog;
+			}
+		}
+	},
+	function(session, results){
+		console.log("Exist!");
+		session.replaceDialog('/common/retry');
+	}
+]);
+
 //　結果ストック用
 var responseStorage = function(session, title_text, url_text){
 	var response_object = { title:title_text, url:url_text};
@@ -642,8 +778,6 @@ dialog.matches('今何時', function(session){
 	session.send(fmt_date);
 });
 
-var book_type = ['コミック','小説'];
-
 dialog.matches('本', [
 	function(session){
 		session.beginDialog('/book/search');
@@ -783,144 +917,144 @@ bot.add('/book/search', [
 	}
 ]);
 
-dialog.matches('コミック', function(session){
+// dialog.matches('コミック', function(session){
 
-	var dtBase = new Date();
+// 	var dtBase = new Date();
 
-	// 北米時間(JST-9)を日本時間に換算
-	var dt = dtBase.addHours(9);
-	//var dt = dtBase;
+// 	// 北米時間(JST-9)を日本時間に換算
+// 	var dt = dtBase.addHours(9);
+// 	//var dt = dtBase;
 
-	// 年号取得
-	var	fmt_year = dt.toFormat("YYYY");
+// 	// 年号取得
+// 	var	fmt_year = dt.toFormat("YYYY");
 
-	// 月を取得
-	var fmt_month = dt.toFormat("MM");
+// 	// 月を取得
+// 	var fmt_month = dt.toFormat("MM");
 
-	// 日付を取得
-	var fmt_day = dt.toFormat("DD");
+// 	// 日付を取得
+// 	var fmt_day = dt.toFormat("DD");
 
-	// URL用年月取得
-	var url_now = fmt_year.slice(-2) + fmt_month;
+// 	// URL用年月取得
+// 	var url_now = fmt_year.slice(-2) + fmt_month;
 
-	// 当日日付取得用
-	var fmt_today = fmt_month + "/" + fmt_day;
+// 	// 当日日付取得用
+// 	var fmt_today = fmt_month + "/" + fmt_day;
 
-	var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
+// 	var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
 
-	// 開始文言設定
-	// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
-	var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
-	rst_book_text += "---\n\r";
+// 	// 開始文言設定
+// 	// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
+// 	var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
+// 	rst_book_text += "---\n\r";
 
-	// ブックサーチから今月分のページへアクセス
-	// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'c.html',  function (err, $, res) {
-	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/comic_top.html',  function (err, $, res) {
+// 	// ブックサーチから今月分のページへアクセス
+// 	// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'c.html',  function (err, $, res) {
+// 	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/comic_top.html',  function (err, $, res) {
 
-		_$tBody = $('tBody');
+// 		_$tBody = $('tBody');
 
-	 	$(_$tBody.children()).each(function(){
+// 	 	$(_$tBody.children()).each(function(){
 
-			var _$td = $(this).find('td');
+// 			var _$td = $(this).find('td');
 
-			// 出版社
-			var td_publisher = _$td.eq(0).text();
+// 			// 出版社
+// 			var td_publisher = _$td.eq(0).text();
 
-			// 発売日
-			var td_date = _$td.eq(1).text();
+// 			// 発売日
+// 			var td_date = _$td.eq(1).text();
 
-			// 作者
-			var td_writeby = _$td.eq(4).text();
+// 			// 作者
+// 			var td_writeby = _$td.eq(4).text();
 
-			// タイトル
-			var td_title = _$td.eq(3).text();
+// 			// タイトル
+// 			var td_title = _$td.eq(3).text();
 
-			// 結果文字列をセット
-			if(td_date == fmt_today){
-				rst_book_text += "出版社：" + td_publisher;
-				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
-				rst_book_text += "タイトル：" + td_title + "\n\r";
-				rst_book_text += "---\n\r";
-			}
+// 			// 結果文字列をセット
+// 			if(td_date == fmt_today){
+// 				rst_book_text += "出版社：" + td_publisher;
+// 				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
+// 				rst_book_text += "タイトル：" + td_title + "\n\r";
+// 				rst_book_text += "---\n\r";
+// 			}
 
-		});
+// 		});
 
-	 	rst_book_text += "以上です！";
+// 	 	rst_book_text += "以上です！";
 
-		// HTMLタイトルを表示
-		session.send(rst_book_text);
+// 		// HTMLタイトルを表示
+// 		session.send(rst_book_text);
 
-	});
-});
+// 	});
+// });
 
-dialog.matches('小説', function(session){
+// dialog.matches('小説', function(session){
 
-	var dtBase = new Date();
+// 	var dtBase = new Date();
 
-	// 北米時間(JST-9)を日本時間に換算
-	var dt = dtBase.addHours(9);
-	//var dt = dtBase;
+// 	// 北米時間(JST-9)を日本時間に換算
+// 	var dt = dtBase.addHours(9);
+// 	//var dt = dtBase;
 
-	// 年号取得
-	var	fmt_year = dt.toFormat("YYYY");
+// 	// 年号取得
+// 	var	fmt_year = dt.toFormat("YYYY");
 
-	// 月を取得
-	var fmt_month = dt.toFormat("MM");
+// 	// 月を取得
+// 	var fmt_month = dt.toFormat("MM");
 
-	// 日付を取得
-	var fmt_day = dt.toFormat("DD");
+// 	// 日付を取得
+// 	var fmt_day = dt.toFormat("DD");
 
-	// URL用年月取得
-	var url_now = fmt_year.slice(-2) + fmt_month;
+// 	// URL用年月取得
+// 	var url_now = fmt_year.slice(-2) + fmt_month;
 
-	// 当日日付取得用
-	var fmt_today = fmt_month + "/" + fmt_day;
+// 	// 当日日付取得用
+// 	var fmt_today = fmt_month + "/" + fmt_day;
 
-	var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
+// 	var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
 
-	// 開始文言設定
-	// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
-	var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
-	rst_book_text += "---\n\r";
+// 	// 開始文言設定
+// 	// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
+// 	var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
+// 	rst_book_text += "---\n\r";
 
-	// ブックサーチから今月分のページへアクセス
-	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'b.html',  function (err, $, res) {
+// 	// ブックサーチから今月分のページへアクセス
+// 	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'b.html',  function (err, $, res) {
 
-		_$tBody = $('tBody');
+// 		_$tBody = $('tBody');
 
-	 	$(_$tBody.children()).each(function(){
+// 	 	$(_$tBody.children()).each(function(){
 
-			var _$td = $(this).find('td');
+// 			var _$td = $(this).find('td');
 
-			// 出版社
-			var td_publisher = _$td.eq(0).text();
+// 			// 出版社
+// 			var td_publisher = _$td.eq(0).text();
 
-			// 発売日
-			var td_date = _$td.eq(1).text();
+// 			// 発売日
+// 			var td_date = _$td.eq(1).text();
 
-			// 作者
-			var td_writeby = _$td.eq(4).text();
+// 			// 作者
+// 			var td_writeby = _$td.eq(4).text();
 
-			// タイトル
-			var td_title = _$td.eq(3).text();
+// 			// タイトル
+// 			var td_title = _$td.eq(3).text();
 
-			// 結果文字列をセット
-			if(td_date == fmt_today){
-				rst_book_text += "出版社：" + td_publisher;
-				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
-				rst_book_text += "タイトル：" + td_title + "\n\r";
-				rst_book_text += "---\n\r";
-			}
+// 			// 結果文字列をセット
+// 			if(td_date == fmt_today){
+// 				rst_book_text += "出版社：" + td_publisher;
+// 				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
+// 				rst_book_text += "タイトル：" + td_title + "\n\r";
+// 				rst_book_text += "---\n\r";
+// 			}
 
-		});
+// 		});
 
-	 	rst_book_text += "以上です！";
+// 	 	rst_book_text += "以上です！";
 
-		// HTMLタイトルを表示
-		session.send(rst_book_text);
+// 		// HTMLタイトルを表示
+// 		session.send(rst_book_text);
 
-	});
-});
+// 	});
+// });
 
 
 bot.add('/', dialog);
