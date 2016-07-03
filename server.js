@@ -85,8 +85,8 @@ dialog.matches('ニュース',
 	}
 );
 
-var array_next = ['次','つぎ','tugi','next'];
-var array_all = ['全部','全て','ぜんぶ','すべて','zennbu','subete','all'];
+var array_next = ['次','つぎ','tugi','next','Tugi','Next'];
+var array_all = ['全部','全て','ぜんぶ','すべて','zennbu','subete','all','Zennbu','Subete','All'];
 var array_gateway = array_next.concat(array_all);
 
 // ストックしている結果を表示
@@ -150,7 +150,7 @@ dialog.matches(array_gateway, function(session){
 });
 
 // 繰り返しテスト
-dialog.matches('repeat', 
+dialog.matches(['repeat','Repeat'], 
 	function(session){
 		session.beginDialog('/stock/master');
 	}
@@ -489,7 +489,7 @@ bot.add('/4g/filter', [
 	}
 ]);
 
-dialog.matches('nyaa', [
+dialog.matches(['nyaa','Nyaa'], [
 	function(session){
 		session.beginDialog('/ny/search_word');
 	},
