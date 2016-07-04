@@ -171,10 +171,12 @@ bot.add('/stock/master', [
 		if(session.userData.stock_display != '終了する'){
 			// 終了しないかぎりは文字送信のみ
 			// session.send(session.userData.stock_text);
-			session.send(session.userData.stock_text);
+			// session.send(session.userData.stock_text);
+			session.userData.stock_repeat_status = 'repeating';
 			session.replaceDialog('/stock/master');
 		} else {
 			// 表示をやめる場合はendDialogを呼び出し
+			session.userData.stock_repeat_status = null;
 			session.send('ストック結果の表示を終了します！');
 			session.endDialog();
 		}			
@@ -201,7 +203,20 @@ bot.add('/stock/send', [
 // ストックしている結果を表示
 bot.add('/stock/disply', [
 	function(session){
-		builder.Prompts.choice(session, "ストックされた結果を表示しますか？", "10件|全件|終了する");
+
+		var num_stock = responseLength(session);
+
+		if(num_stock >= 1){
+			num_stock -= 1;
+		}
+
+		// builder.Prompts.choice(session, "ストックされた結果を表示しますか？", "10件|全件|終了する");
+		if(!session.userData.stock_repeat_status){
+			builder.Prompts.choice(session, "ストックが" + num_stock + "件あります。\n\r表示しますか？", "10件|全件|終了する");		
+		} else {
+			builder.Prompts.choice(session, session.userData.stock_text + "\n\rストックが残り" + num_stock + "件あります。\n\r表示しますか？", "10件|全件|終了する");
+		}
+
 	},
 	function(session, results){
 		session.userData.stock_display = results.response.entity;
@@ -434,7 +449,7 @@ dialog.matches('4gamer',[
 		session.userData.filter = null;
 		session.userData.selected_tag = null;
 
-		session.send(response_msg);
+		// session.send(response_msg);
 
 		// ストックした結果を表示するか確認をとる
 		session.beginDialog('/stock/master');
@@ -573,9 +588,9 @@ dialog.matches(['nyaa','Nyaa'], [
 		});
 
 		// ストック数取得
-		var num_stock = responseLength(session) - 1;
+		// var num_stock = responseLength(session) - 1;
 
-		session.send(num_stock + "件ストックしました！");		
+		// session.send(num_stock + "件ストックしました！");		
 
 		// ストックを表示するかユーザーに確認する
 		session.beginDialog('/stock/master');
@@ -891,9 +906,9 @@ dialog.matches('本', [
 
 			});
 
-			var num_stock = responseLength(session) - 1;
+			// var num_stock = responseLength(session) - 1;
 
-			session.send(num_stock + "件ストックしました！");
+			// session.send(num_stock + "件ストックしました！");
 
 			// ストックを表示するかユーザーへ確認する
 			session.beginDialog('/stock/master');
