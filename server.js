@@ -189,9 +189,14 @@ bot.add('/stock/master', [
 	}
 ]);
 
-bot.add('/stock/send', function(session){
-	session.send(session.userData.stock_text);
-});
+bot.add('/stock/send', [
+	function(session){
+		session.send(session.userData.stock_text);
+	},
+	function(session){
+		session.endDialog();		
+	}
+]);
 
 // ストックしている結果を表示
 bot.add('/stock/disply', [
@@ -804,6 +809,7 @@ dialog.matches('本', [
 		session.beginDialog('/book/search');
 	},
 	function(session){
+
 		var dtBase = new Date();
 
 		// 北米時間(JST-9)を日本時間に換算
@@ -828,7 +834,7 @@ dialog.matches('本', [
 		// var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
 		var fmt_full = dt.toFormat('YYYY/MM/DD');
 
-		var boot_type = session.userData.filter;
+		var book_type = session.userData.filter;
 
 		session.userData.stock = null;
 
@@ -841,8 +847,8 @@ dialog.matches('本', [
 
 		var base_url = '';
 
-		if (session.userData.filter == 'c'|| session.userData.filter == 'b'){
-			base_url = 'http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + session.userData.filter + '.html'
+		if (book_type == 'c'||book_type == 'b'){
+			base_url = 'http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + session.userData.filter + '.html';
 		} else {
 			base_url = 'http://www.bookservice.jp/layout/bs/common/html/schedule/' + book_type + '.html';
 		}
@@ -878,24 +884,26 @@ dialog.matches('本', [
 					rst_text += " / " + "作者：" + td_writeby + "\n\r";
 					rst_text += "タイトル：" + td_title + "\n\r";
 					rst_text += "---\n\r";
-				}
 
-				responseStorage(session, rst_text, '');
+					responseStorage(session, rst_text, '');
+
+				}
 
 			});
 
-		 });
+			var num_stock = responseLength(session) - 1;
+
+			session.send(num_stock + "件ストックしました！");
+
+			// ストックを表示するかユーザーへ確認する
+			session.beginDialog('/stock/master');
+
+
+		});
 
 	 	// rst_book_text += "以上です！";
 
 		// HTMLタイトルを表示
-
-		var num_stock = responseLength(session) - 1;
-
-		session.send(num_stock + "件ストックしました！");
-
-		// ストックを表示するかユーザーへ確認する
-		session.beginDialog('/stock/master');
 		
 	}
 ]);
