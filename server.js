@@ -47,8 +47,13 @@ dialog.matches('ニュース',
 		// yahooのIT・科学ニュースの1ページ目へアクセス
 		client.fetch('http://news.yahoo.co.jp/hl?c=c_sci&p=1',  function (err, $, res) {
 
+		// ストック初期化
+		session.userData.stock = null;
+
 		 var resultText = "Yahoo Japan IT・科学の新着ニュースは...\n\r";
 		 resultText += "---\n\r";
+
+		responseStorage(session, resultText, '');
 		 
 		// listBdクラスを持つul要素 の li要素
 		$('ul.listBd > li').each(function(){
@@ -69,17 +74,24 @@ dialog.matches('ニュース',
 			var linkUrl = _$a.attr('href');
 
 			// ニュースタイトル ソース リンクURLの順で結果文字列に追加
-		 	resultText += ttlText + "(from:" + sourceText + ")" + "\n\r"
-		 	resultText += linkUrl + "\n\r";
-		 	resultText += "---\n\r";
+		 	// resultText += ttlText + "(from:" + sourceText + ")" + "\n\r";
+		 	// resultText += linkUrl + "\n\r";
+		 	// resultText += "---\n\r";
+
+		 	var titleTXT = ttlText + "(from:" + sourceText + ")" + "\n\r";
+		 	var urlTXT = linkUrl + "\n\r" + "---\n\r";
+
+		 	responseStorage(session, titleTXT, urlTXT);
 
 		});
 
-		 // 取得終了を発言
-		 resultText += "\n\r以上です!"
+		 // // 取得終了を発言
+		 // resultText += "\n\r以上です!"
 
-		 // ユーザへ結果を送信
-		 session.send(resultText);
+		 // // ユーザへ結果を送信
+		 // session.send(resultText);
+
+		session.beginDialog('/stock/master');
 
 		});
 	}
