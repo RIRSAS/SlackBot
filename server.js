@@ -168,7 +168,7 @@ dialog.matches(['repeat','Repeat'],
 	}
 );
 
-// ループ管理用ダイアログ endDialogしない限りループ＿
+// ループ管理用ダイアログ endDialogしない限りループ
 bot.add('/stock/master', [
 	function(session){
 		// promptで処理を質問
@@ -181,8 +181,7 @@ bot.add('/stock/master', [
 	function(session){
 
 		if(session.userData.stock_display != '終了する'){
-			// 終了しないかぎりは文字送信のみ
-			// session.send(session.userData.stock_text);
+			// 終了しないかぎりは文字送信のみ session.sendするとダイアログが終了してしまう
 			// session.send(session.userData.stock_text);
 			session.userData.stock_repeat_status = 'repeating';
 			session.replaceDialog('/stock/master');
@@ -192,14 +191,6 @@ bot.add('/stock/master', [
 			session.send('ストック結果の表示を終了します！');
 			session.endDialog();
 		}			
-
-		// if(session.userData.stock_display != '表示しない'){
-		// 	// 終了しないかぎりは文字送信のみ
-		// 	session.send(session.userData.stock_text);
-		// 	session.replaceDialog('/stock/master');
-		// } else {
-			// 表示をやめる場合はendDialogを呼び出し
-		// }
 	}
 ]);
 
@@ -274,23 +265,10 @@ bot.add('/stock/proc', function(session){
 			if(session.userData.stock){
 				num_loop = session.userData.stock.length;
 			} else {
-			// ストックが無いむねだけ表示
+			// ストックが無いことだけ表示
 				num_loop = 1;
 			}
 		}
-
-		// // n個づつ表示 else if すべて表示
-		// if (array_next.indexOf(session.message.text) >= 0) {
-		// 	num_loop = 10;
-		// } else if(array_all.indexOf(session.message.text) >= 0) {
-		// 	// ストック自体されているか？
-		// 	if(session.userData.stock){
-		// 		num_loop = session.userData.stock.length;
-		// 	} else {
-		// 		// ストックが無いむねだけ表示
-		// 		num_loop = 1;
-		// 	}
-		// }
 
 		// 回数分表示
 		for(var i = 0; i < num_loop; i++){
@@ -402,8 +380,6 @@ dialog.matches('4gamer',[
 			// 先頭ストック格納 urlは無しでセット
 		 	responseStorage(session, resultText4gamer, '');
 			 
-			// id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
-			// $('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
 			// id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ
 			$('div#NEWS_SELECT_DAY_1 > div').each(function(){
 
@@ -541,7 +517,14 @@ bot.add('/4g/filter', [
 
 dialog.matches(['nyaa','Nyaa'], [
 	function(session){
-		session.beginDialog('/ny/search_word');
+		session.beginDialog('/ny/disp_type');
+	},
+	function(session, args, next){
+		if(session.userData.disp_type == 'search') {
+			session.beginDialog('/ny/search_word');
+		} else {
+			next();
+		}
 	},
 	function(session){
 		session.beginDialog('/ny/filter');
@@ -560,10 +543,18 @@ dialog.matches(['nyaa','Nyaa'], [
 			url_base = 'http://sukebei.nyaa.se';
 		}
 
-		// var url_base = 'http://sukebei.nyaa.se';
+		var process_type = {};
+
+		if (session.userData.disp_type == 'search') {
+			process_type = { page:'search', cats:session.userData.filter, filter:'0', term:session.userData.search_word};
+		} else {
+			process_type = {cats:session.userData.filter};
+		}
 
 		// Nyaaに検索ワード込みでアクセスのトップページへアクセス
-		client.fetch(url_base, { page:'search', cats:session.userData.filter, filter:'0', term:session.userData.search_word},  function (err, $, res) {
+		// client.fetch(url_base, { page:'search', cats:session.userData.filter, filter:'0', term:session.userData.search_word},  function (err, $, res) {
+		// client.fetch(url_base, {cats:session.userData.filter},  function (err, $, res) {
+		client.fetch(url_base, process_type,  function (err, $, res) {
 
 		// ストック先のクリア
 		session.userData.stock = null;
@@ -573,9 +564,7 @@ dialog.matches(['nyaa','Nyaa'], [
 
 		 responseStorage(session, resultTextNyaa, '');
 		 
-		 // id要素がNEWS_SELECT_DAY_1のdivタグ の divタグ の h2タグ の aタグ
-		// $('div#NEWS_SELECT_DAY_1 > div > h2 > a').each(function(){
-		// $('table.tlist > tr.tlistrow > td.tlistname > a').each(function(){
+		 // table.tlist要素からtr.tlistrow(1件分)
 		$('table.tlist > tr.tlistrow').each(function(){
 
 			var _$td_tlistname = $(this).find('td.tlistname');
@@ -583,11 +572,6 @@ dialog.matches(['nyaa','Nyaa'], [
 
 			var _$td_tlistdownload = $(this).find('td.tlistdownload');
 			var _$a_tlistdownload = _$td_tlistdownload.find('a').attr('href');
-
-			// タイトル リンクURLの順で結果文字列に追加
-			// resultTextNyaa += _$a_tlistname + "\n\r";
-		 // 	resultTextNyaa += "https:" + _$a_tlistdownload + "\n\r";
-		 // 	resultTextNyaa += "---\n\r";
 
 		 	// タイトル
 		 	var resultTXT = _$a_tlistname + "\n\r";
@@ -599,19 +583,8 @@ dialog.matches(['nyaa','Nyaa'], [
 
 		});
 
-		// ストック数取得
-		// var num_stock = responseLength(session) - 1;
-
-		// session.send(num_stock + "件ストックしました！");		
-
 		// ストックを表示するかユーザーに確認する
 		session.beginDialog('/stock/master');
-
-		 // // 取得終了を発言
-		 // resultTextNyaa += "以上です!";
-
-		 // // ユーザへ結果を送信
-		 // session.send(resultTextNyaa);
 
 		});
 	}
@@ -627,6 +600,37 @@ bot.add('/ny/search_word', [
 	}
 ]);
 
+bot.add('/ny/disp_type', [
+	function(session){
+		builder.Prompts.choice(session, "Nyaaですね！\n\r最新取得ですか？検索ですか？\n\r", 
+			"最新取得|検索");
+	},
+	function(session, results){
+
+		// デフォルトではフィルターなし(全件検索)の意
+		var disp_type = '';
+
+		// カテゴリー毎のhref要素
+		if(results.response){
+			switch(results.response.entity){
+				case '最新取得':
+					disp_type = 'top';
+					break;
+				case '検索':
+					disp_type = 'search';
+					break;
+				default:
+					break;
+			}
+
+		}
+
+		// userDataに処理要求をセット
+		session.userData.disp_type = disp_type;
+		session.endDialog();
+	}
+]);
+
 bot.add('/ny/filter', [
 	function(session){
 		builder.Prompts.choice(session, "検索したいカテゴリーを選択してください！", 
@@ -638,7 +642,7 @@ bot.add('/ny/filter', [
 		var article_tag = '';
 		var name_tag = '';
 
-		// カテゴリー舞のhref要素
+		// カテゴリー毎のhref要素
 		if(results.response){
 			switch(results.response.entity){
 				case 'Nコミック':
@@ -881,8 +885,6 @@ dialog.matches('本', [
 		}
 
 		// ブックサーチから今月分のページへアクセス
-		// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'c.html',  function (err, $, res) {
-		// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + book_type + '.html',  function (err, $, res) {
 		client.fetch(base_url,  function (err, $, res) {
 
 			_$tBody = $('tBody');
@@ -918,19 +920,11 @@ dialog.matches('本', [
 
 			});
 
-			// var num_stock = responseLength(session) - 1;
-
-			// session.send(num_stock + "件ストックしました！");
-
 			// ストックを表示するかユーザーへ確認する
 			session.beginDialog('/stock/master');
 
 
 		});
-
-	 	// rst_book_text += "以上です！";
-
-		// HTMLタイトルを表示
 		
 	}
 ]);
@@ -975,146 +969,6 @@ bot.add('/book/search', [
 
 	}
 ]);
-
-// dialog.matches('コミック', function(session){
-
-// 	var dtBase = new Date();
-
-// 	// 北米時間(JST-9)を日本時間に換算
-// 	var dt = dtBase.addHours(9);
-// 	//var dt = dtBase;
-
-// 	// 年号取得
-// 	var	fmt_year = dt.toFormat("YYYY");
-
-// 	// 月を取得
-// 	var fmt_month = dt.toFormat("MM");
-
-// 	// 日付を取得
-// 	var fmt_day = dt.toFormat("DD");
-
-// 	// URL用年月取得
-// 	var url_now = fmt_year.slice(-2) + fmt_month;
-
-// 	// 当日日付取得用
-// 	var fmt_today = fmt_month + "/" + fmt_day;
-
-// 	var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
-
-// 	// 開始文言設定
-// 	// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
-// 	var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
-// 	rst_book_text += "---\n\r";
-
-// 	// ブックサーチから今月分のページへアクセス
-// 	// client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'c.html',  function (err, $, res) {
-// 	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/comic_top.html',  function (err, $, res) {
-
-// 		_$tBody = $('tBody');
-
-// 	 	$(_$tBody.children()).each(function(){
-
-// 			var _$td = $(this).find('td');
-
-// 			// 出版社
-// 			var td_publisher = _$td.eq(0).text();
-
-// 			// 発売日
-// 			var td_date = _$td.eq(1).text();
-
-// 			// 作者
-// 			var td_writeby = _$td.eq(4).text();
-
-// 			// タイトル
-// 			var td_title = _$td.eq(3).text();
-
-// 			// 結果文字列をセット
-// 			if(td_date == fmt_today){
-// 				rst_book_text += "出版社：" + td_publisher;
-// 				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
-// 				rst_book_text += "タイトル：" + td_title + "\n\r";
-// 				rst_book_text += "---\n\r";
-// 			}
-
-// 		});
-
-// 	 	rst_book_text += "以上です！";
-
-// 		// HTMLタイトルを表示
-// 		session.send(rst_book_text);
-
-// 	});
-// });
-
-// dialog.matches('小説', function(session){
-
-// 	var dtBase = new Date();
-
-// 	// 北米時間(JST-9)を日本時間に換算
-// 	var dt = dtBase.addHours(9);
-// 	//var dt = dtBase;
-
-// 	// 年号取得
-// 	var	fmt_year = dt.toFormat("YYYY");
-
-// 	// 月を取得
-// 	var fmt_month = dt.toFormat("MM");
-
-// 	// 日付を取得
-// 	var fmt_day = dt.toFormat("DD");
-
-// 	// URL用年月取得
-// 	var url_now = fmt_year.slice(-2) + fmt_month;
-
-// 	// 当日日付取得用
-// 	var fmt_today = fmt_month + "/" + fmt_day;
-
-// 	var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
-
-// 	// 開始文言設定
-// 	// var rst_book_text = "本日(" + fmt_today + ")発売の本は...\n\r";
-// 	var rst_book_text = "本日(" + fmt_full + ")発売の本は...\n\r";
-// 	rst_book_text += "---\n\r";
-
-// 	// ブックサーチから今月分のページへアクセス
-// 	client.fetch('http://www.bookservice.jp/layout/bs/common/html/schedule/' + url_now + 'b.html',  function (err, $, res) {
-
-// 		_$tBody = $('tBody');
-
-// 	 	$(_$tBody.children()).each(function(){
-
-// 			var _$td = $(this).find('td');
-
-// 			// 出版社
-// 			var td_publisher = _$td.eq(0).text();
-
-// 			// 発売日
-// 			var td_date = _$td.eq(1).text();
-
-// 			// 作者
-// 			var td_writeby = _$td.eq(4).text();
-
-// 			// タイトル
-// 			var td_title = _$td.eq(3).text();
-
-// 			// 結果文字列をセット
-// 			if(td_date == fmt_today){
-// 				rst_book_text += "出版社：" + td_publisher;
-// 				rst_book_text += " / " + "作者：" + td_writeby + "\n\r";
-// 				rst_book_text += "タイトル：" + td_title + "\n\r";
-// 				rst_book_text += "---\n\r";
-// 			}
-
-// 		});
-
-// 	 	rst_book_text += "以上です！";
-
-// 		// HTMLタイトルを表示
-// 		session.send(rst_book_text);
-
-// 	});
-// });
-
 
 bot.add('/', dialog);
 
