@@ -1176,7 +1176,7 @@ dialog.matches(['hachima','はちま'],
 	}
 );
 
-dialog.matches(['rajik','らじっく','ラジック'],
+dialog.matches(['rajic','らじっく','ラジック'],
 	function(session){
 
 		// 個別の記事へのリンクの親ページ
@@ -1185,11 +1185,11 @@ dialog.matches(['rajik','らじっく','ラジック'],
 		// ラジックのトップページへアクセス
 		client.fetch(url_base,  function (err, $, res) {
 
-		var resultTextRajik = '';
+		var resultTextRajic = '';
 
-		resultTextRajik = "ラジックの最新記事は...\n\r";
+		resultTextRajic = "ラジックの最新記事は...\n\r";
 
-		resultTextRajik += "---\n\r";
+		resultTextRajic += "---\n\r";
 
 		var response_msg = "";
 
@@ -1198,7 +1198,7 @@ dialog.matches(['rajik','らじっく','ラジック'],
 
 		try {
 			// 先頭ストック格納 urlは無しでセット
-		 	responseStorage(session, resultTextRajik, '');
+		 	responseStorage(session, resultTextRajic, '');
 
 			// 取得対象タグを包括しているタグを指定
 			$('div.article-title-outer').each(function(){
