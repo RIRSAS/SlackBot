@@ -970,6 +970,213 @@ bot.add('/book/search', [
 	}
 ]);
 
+dialog.matches(['oreteki','おれてき'],
+	function(session){
+
+		var dtBase = new Date();
+
+		// 北米時間(JST-9)を日本時間に換算
+		var dt = dtBase.addHours(9);
+		// var dt = dtBase;
+
+		// 年号取得
+		var	fmt_year = dt.toFormat("YYYY");
+
+		// 月を取得
+		var fmt_month = dt.toFormat("MM");
+
+		// 日付を取得
+		var fmt_day = dt.toFormat("DD");
+
+		// var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
+		var fmt_full = dt.toFormat('YYYY年MM月DD日');
+
+		// console.log('today is' + fmt_full);
+
+		// 個別の記事へのリンクの親ページ
+		var url_base = 'http://jin115.com/';
+
+		// はちま寄稿のトップページへアクセス
+		client.fetch(url_base,  function (err, $, res) {
+
+		var resultTextOreteki = '';
+
+		resultTextOreteki = "オレ的ニュース速報の新着ニュースは...\n\r";
+
+		resultTextOreteki += "---\n\r";
+
+		var response_msg = "";
+
+		// ストック初期化
+		session.userData.stock = null;
+
+		try {
+			// 先頭ストック格納 urlは無しでセット
+		 	responseStorage(session, resultTextOreteki, '');
+
+			// 取得対象タグを包括しているタグを指定
+			$('div.index_article_header').each(function(){
+
+				// 
+				var _$a_target = $(this).find('div.read_more').find('a');
+
+				// 時刻を取得
+				var _$time = $(this).find('div.index_article_header_header').find('div.index_article_header_date').children().text();
+
+				var timeText = _$time.slice(0,11);
+
+				// console.log(_$time.slice(0,11));
+
+				// 記事タイトル
+				// var titleText = _$a_target.text();
+				var titleText = _$a_target.attr('title');
+
+				// 記事リンクURL
+				var targetUrl = _$a_target.attr('href');
+
+			 	var titleTXT = titleText + "\n\r";
+			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";;
+
+			 	if(fmt_full == timeText){
+
+					responseStorage(session, titleTXT, urlTXT);
+				}
+			});
+
+			// 先頭の説明テキストを除いた件数
+			var num_stock = responseLength(session) - 1;
+
+			response_msg = num_stock + "件の記事をストックしました！";
+
+		} catch (e) {
+			// ストックを初期化する
+			session.userData.stock = null;
+
+			// エラー終了
+			response_msg = "検索結果をストックするのに失敗しました...";
+		}
+
+		// choceで選択したフィルターの削除
+		session.userData.filter = null;
+		session.userData.selected_tag = null;
+
+		// session.send(response_msg);
+
+		// ストックした結果を表示するか確認をとる
+		session.beginDialog('/stock/master');
+
+		});
+	}
+);
+
+dialog.matches(['hachima','はちま'],
+	function(session){
+
+		var dtBase = new Date();
+
+		// 北米時間(JST-9)を日本時間に換算
+		var dt = dtBase.addHours(9);
+		// var dt = dtBase;
+
+		// 年号取得
+		var	fmt_year = dt.toFormat("YYYY");
+
+		// 月を取得
+		var fmt_month = dt.toFormat("MM");
+
+		// 日付を取得
+		var fmt_day = dt.toFormat("DD");
+
+		// var fmt_full = dt.toFormat('YYYY/MM/DD HH:MI:SS');
+		var fmt_full = dt.toFormat('YYYY年M月D日');
+
+		var fmt_full_dots = dt.toFormat('YYYY.M.D');
+
+		// 個別の記事へのリンクの親ページ
+		// var url_base = 'http://jin115.com/';
+		var url_base = 'http://blog.esuteru.com/';
+
+		// はちま寄稿のトップページへアクセス
+		client.fetch(url_base,  function (err, $, res) {
+
+		var resultTextHachima = '';
+
+		resultTextHachima = "はちま寄稿の最新記事は...\n\r";
+
+		resultTextHachima += "---\n\r";
+
+		var response_msg = "";
+
+		// ストック初期化
+		session.userData.stock = null;
+
+		try {
+			// 先頭ストック格納 urlは無しでセット
+		 	responseStorage(session, resultTextHachima, '');
+
+			// 取得対象タグを包括しているタグを指定
+			$('section.clearfix').each(function(){
+
+				// 
+				var _$a_target = $(this).find('h2').find('a');
+
+				// 時刻を取得
+				// var _$time = $(this).find('div.index_article_header_header').find('div.index_article_header_date').children().text();
+				var _$time = $(this).find('p.date').text().slice(0,-5);
+
+				console.log(_$time);
+
+				// var timeText = _$time.slice(0,11);
+
+				// console.log(_$time.slice(0,11));
+
+				// 記事タイトル
+				var titleText = _$a_target.text();
+				// var titleText = _$a_target.attr('title');
+
+				// 記事リンクURL
+				var targetUrl = _$a_target.attr('href');
+
+			 	var titleTXT = titleText + "\n\r";
+			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";;
+
+			 	// if(fmt_full == timeText){
+
+			 	if (titleTXT != "\n\r"){
+			 		if((fmt_full == _$time)||(fmt_full_dots == _$time)){
+						responseStorage(session, titleTXT, urlTXT);
+					}
+				}
+// 				}
+			});
+
+			// 先頭の説明テキストを除いた件数
+			var num_stock = responseLength(session) - 1;
+
+			response_msg = num_stock + "件の記事をストックしました！";
+
+		} catch (e) {
+			// ストックを初期化する
+			session.userData.stock = null;
+
+			// エラー終了
+			response_msg = "検索結果をストックするのに失敗しました...";
+		}
+
+		// choceで選択したフィルターの削除
+		session.userData.filter = null;
+		session.userData.selected_tag = null;
+
+		// session.send(response_msg);
+
+		// ストックした結果を表示するか確認をとる
+		session.beginDialog('/stock/master');
+
+		});
+	}
+);
+
+
 bot.add('/', dialog);
 
 // Setup Restify Server
