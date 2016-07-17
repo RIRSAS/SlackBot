@@ -996,12 +996,12 @@ dialog.matches(['oreteki','おれてき'],
 		// 個別の記事へのリンクの親ページ
 		var url_base = 'http://jin115.com/';
 
-		// はちま寄稿のトップページへアクセス
+		// オレ的ゲーム速報のトップページへアクセス
 		client.fetch(url_base,  function (err, $, res) {
 
 		var resultTextOreteki = '';
 
-		resultTextOreteki = "オレ的ニュース速報の新着ニュースは...\n\r";
+		resultTextOreteki = "オレ的ゲーム速報の新着ニュースは...\n\r";
 
 		resultTextOreteki += "---\n\r";
 
@@ -1148,6 +1148,142 @@ dialog.matches(['hachima','はちま'],
 					}
 				}
 // 				}
+			});
+
+			// 先頭の説明テキストを除いた件数
+			var num_stock = responseLength(session) - 1;
+
+			response_msg = num_stock + "件の記事をストックしました！";
+
+		} catch (e) {
+			// ストックを初期化する
+			session.userData.stock = null;
+
+			// エラー終了
+			response_msg = "検索結果をストックするのに失敗しました...";
+		}
+
+		// choceで選択したフィルターの削除
+		session.userData.filter = null;
+		session.userData.selected_tag = null;
+
+		// session.send(response_msg);
+
+		// ストックした結果を表示するか確認をとる
+		session.beginDialog('/stock/master');
+
+		});
+	}
+);
+
+dialog.matches(['rajik','らじっく','ラジック'],
+	function(session){
+
+		// 個別の記事へのリンクの親ページ
+		var url_base = 'http://rajic.2chblog.jp/';
+
+		// ラジックのトップページへアクセス
+		client.fetch(url_base,  function (err, $, res) {
+
+		var resultTextRajik = '';
+
+		resultTextRajik = "ラジックの最新記事は...\n\r";
+
+		resultTextRajik += "---\n\r";
+
+		var response_msg = "";
+
+		// ストック初期化
+		session.userData.stock = null;
+
+		try {
+			// 先頭ストック格納 urlは無しでセット
+		 	responseStorage(session, resultTextRajik, '');
+
+			// 取得対象タグを包括しているタグを指定
+			$('div.article-title-outer').each(function(){
+
+				// 
+				var _$a_target = $(this).children().find('a');
+
+				// 記事タイトル
+				var titleText = _$a_target.text();
+
+				// 記事リンクURL
+				var targetUrl = _$a_target.attr('href');
+
+			 	var titleTXT = titleText + "\n\r";
+			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";;
+
+				responseStorage(session, titleTXT, urlTXT);
+			});
+
+			// 先頭の説明テキストを除いた件数
+			var num_stock = responseLength(session) - 1;
+
+			response_msg = num_stock + "件の記事をストックしました！";
+
+		} catch (e) {
+			// ストックを初期化する
+			session.userData.stock = null;
+
+			// エラー終了
+			response_msg = "検索結果をストックするのに失敗しました...";
+		}
+
+		// choceで選択したフィルターの削除
+		session.userData.filter = null;
+		session.userData.selected_tag = null;
+
+		// session.send(response_msg);
+
+		// ストックした結果を表示するか確認をとる
+		session.beginDialog('/stock/master');
+
+		});
+	}
+);
+
+dialog.matches(['aja','あじゃ'],
+	function(session){
+
+		// 個別の記事へのリンクの親ページ
+		var url_base = 'http://blog.livedoor.jp/chihhylove/';
+
+		// はちま寄稿のトップページへアクセス
+		client.fetch(url_base,  function (err, $, res) {
+
+		var resultTextAjaja = '';
+
+		resultTextAjaja = "あじゃじゃしたーの最新記事は...\n\r";
+
+		resultTextAjaja += "---\n\r";
+
+		var response_msg = "";
+
+		// ストック初期化
+		session.userData.stock = null;
+
+		try {
+			// 先頭ストック格納 urlは無しでセット
+		 	responseStorage(session, resultTextAjaja, '');
+
+			// 取得対象タグを包括しているタグを指定
+			$('div.fullbody > div.titlebody').each(function(){
+
+				// 
+				var _$a_target = $(this).find('h2.title').find('a');
+
+				// 記事タイトル
+				var titleText = _$a_target.text();
+
+				// 記事リンクURL
+				var targetUrl = _$a_target.attr('href');
+
+			 	var titleTXT = titleText + "\n\r";
+			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";;
+
+				responseStorage(session, titleTXT, urlTXT);
 			});
 
 			// 先頭の説明テキストを除いた件数
