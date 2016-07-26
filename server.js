@@ -1035,7 +1035,7 @@ dialog.matches(['oreteki','おれてき'],
 				var targetUrl = _$a_target.attr('href');
 
 			 	var titleTXT = titleText + "\n\r";
-			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";;
+			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";
 
 			 	if(fmt_full == timeText){
 
@@ -1138,7 +1138,7 @@ dialog.matches(['hachima','はちま'],
 				var targetUrl = _$a_target.attr('href');
 
 			 	var titleTXT = titleText + "\n\r";
-			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";;
+			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";
 
 			 	// if(fmt_full == timeText){
 
@@ -1213,7 +1213,7 @@ dialog.matches(['rajic','らじっく','ラジック'],
 				var targetUrl = _$a_target.attr('href');
 
 			 	var titleTXT = titleText + "\n\r";
-			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";;
+			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";
 
 				responseStorage(session, titleTXT, urlTXT);
 			});
@@ -1284,6 +1284,78 @@ dialog.matches(['aja','あじゃ'],
 			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";;
 
 				responseStorage(session, titleTXT, urlTXT);
+			});
+
+			// 先頭の説明テキストを除いた件数
+			var num_stock = responseLength(session) - 1;
+
+			response_msg = num_stock + "件の記事をストックしました！";
+
+		} catch (e) {
+			// ストックを初期化する
+			session.userData.stock = null;
+
+			// エラー終了
+			response_msg = "検索結果をストックするのに失敗しました...";
+		}
+
+		// choceで選択したフィルターの削除
+		session.userData.filter = null;
+		session.userData.selected_tag = null;
+
+		// session.send(response_msg);
+
+		// ストックした結果を表示するか確認をとる
+		session.beginDialog('/stock/master');
+
+		});
+	}
+);
+
+dialog.matches(['ねとらぼ','netorabo'],
+	function(session){
+
+		var url_base = 'http://nlab.itmedia.co.jp/';
+
+		// サイトアクセス
+		client.fetch(url_base,  function (err, $, res) {
+
+		var resultText = '';
+
+		resultText = "ねとらぼの最新記事は...\n\r";
+
+		resultText += "---\n\r";
+
+		var response_msg = "";
+
+		// ストック初期化
+		session.userData.stock = null;
+
+		try {
+			// 先頭ストック格納 urlは無しでセット
+		 	responseStorage(session, resultText, '');
+
+			// 取得対象タグを包括しているタグを指定
+			$('div.colBoxTitle').each(function(){
+
+				// 
+				var _$a_target = $(this).find('h3').find('a');
+
+				// 記事タイトル
+				var titleText = _$a_target.text();
+				// var titleText = _$a_target.attr('title');
+
+				// 記事リンクURL
+				var targetUrl = _$a_target.attr('href');
+
+			 	var titleTXT = titleText + "\n\r";
+			 	var urlTXT = targetUrl + "\n\r" + "---\n\r";
+
+			 	// if(fmt_full == timeText){
+
+			 	if (titleTXT != "\n\r"){
+						responseStorage(session, titleTXT, urlTXT);
+				}
 			});
 
 			// 先頭の説明テキストを除いた件数
