@@ -1407,73 +1407,144 @@ dialog.matches(['honto','ほんと'],
 
 		// 個別の記事へのリンクの親ページ
 //		var url_base = 'http://rajic.2chblog.jp/';
-		var url_base = 'http://honto.jp/netstore/calender.html';
+		// var url_base = 'http://honto.jp/netstore/calender.html';
+		 var url_base = 'http://honto.jp/netstore/calender/old.html';
+
+		var resultTextRajic = '';
+
+		var response_msg = "";
 
 		// hontoカレンダーページへアクセス
 		client.fetch(url_base,  function (err, $, res) {
 
-		var resultTextRajic = '';
+			resultTextRajic = "本日(" + fmt_today +")発売の本は...\n\r";
 
-		resultTextRajic = "本日(" + fmt_today +")発売の本は...\n\r";
+			resultTextRajic += "---\n\r";
 
-		resultTextRajic += "---\n\r";
-
-		var response_msg = "";
-
-		// ストック初期化
-		session.userData.stock = null;
-
-		try {
-			// 先頭ストック格納 urlは無しでセット
-		 	responseStorage(session, resultTextRajic, '');
-
-			// 取得対象タグを包括しているタグを指定
-			$('table.stTableData01 > tbody > tr').each(function(){
-
-				var _$b_target = $(this).find('td').eq(1);
-				var _$a_target = $(this).find('td');
-
-				// 日付
-				var td_date = _$a_target.eq(0).text();
-
-				// タイトル
-				var td_title = _$a_target.eq(1).text();
-
-				// 著者
-				var td_writedby = _$a_target.eq(2).text();
-
-				// 出版社
-				var td_publisher = _$a_target.eq(3).text();
-
-				// レーベル
-				var td_label = _$a_target.eq(4).text();
-
-				var rst_text = '';
-
-				if(td_date == fmt_today){
-					rst_text += "出版社：" + td_publisher;
-					rst_text += " / " + "作者：" + td_writedby + "\n\r";
-					rst_text += "タイトル：" + td_title + "\n\r";
-					rst_text += "---\n\r";
-
-					responseStorage(session, rst_text, '');
-
-				}
-
-			});
-
-			// 先頭の説明テキストを除いた件数
-			var num_stock = responseLength(session) - 1;
-
-			response_msg = num_stock + "件の記事をストックしました！";
-
-		} catch (e) {
-			// ストックを初期化する
+			// ストック初期化
 			session.userData.stock = null;
 
-			// エラー終了
-			response_msg = "検索結果をストックするのに失敗しました...";
-		}
+			try {
+				// 先頭ストック格納 urlは無しでセット
+			 	responseStorage(session, resultTextRajic, '');
+
+				// 取得対象タグを包括しているタグを指定
+				$('table.stTableData01 > tbody > tr').each(function(){
+
+					var _$b_target = $(this).find('td').eq(1);
+					var _$a_target = $(this).find('td');
+
+					// 日付
+					var td_date = _$a_target.eq(0).text();
+
+					// タイトル
+					var td_title = _$a_target.eq(1).text();
+
+					// 著者
+					var td_writedby = _$a_target.eq(2).text();
+
+					// 出版社
+					var td_publisher = _$a_target.eq(3).text();
+
+					// レーベル
+					var td_label = _$a_target.eq(4).text();
+
+					var rst_text = '';
+
+					if(td_date == fmt_today){
+						rst_text += "出版社：" + td_publisher;
+						rst_text += " / " + "作者：" + td_writedby + "\n\r";
+						rst_text += "タイトル：" + td_title + "\n\r";
+						rst_text += "---\n\r";
+
+						responseStorage(session, rst_text, '');
+
+					}
+
+				});
+
+				// 先頭の説明テキストを除いた件数
+				// var num_stock = responseLength(session) - 1;
+
+				// response_msg = num_stock + "件の記事をストックしました！";
+
+			} catch (e) {
+				// ストックを初期化する
+				session.userData.stock = null;
+
+				// エラー終了
+				response_msg = "検索結果をストックするのに失敗しました...";
+			}
+		});
+
+		// 当月分処理
+		url_base = 'http://honto.jp/netstore/calender.html';
+
+		// hontoカレンダーページへアクセス
+		client.fetch(url_base,  function (err, $, res) {
+
+			// resultTextRajic = '';
+
+			// resultTextRajic = "本日(" + fmt_today +")発売の本は...\n\r";
+
+			// resultTextRajic += "---\n\r";
+
+			response_msg = "";
+
+			// ストック初期化
+			// session.userData.stock = null;
+
+			try {
+				// 先頭ストック格納 urlは無しでセット
+			 	responseStorage(session, resultTextRajic, '');
+
+				// 取得対象タグを包括しているタグを指定
+				$('table.stTableData01 > tbody > tr').each(function(){
+
+					var _$b_target = $(this).find('td').eq(1);
+					var _$a_target = $(this).find('td');
+
+					// 日付
+					var td_date = _$a_target.eq(0).text();
+
+					// タイトル
+					var td_title = _$a_target.eq(1).text();
+
+					// 著者
+					var td_writedby = _$a_target.eq(2).text();
+
+					// 出版社
+					var td_publisher = _$a_target.eq(3).text();
+
+					// レーベル
+					var td_label = _$a_target.eq(4).text();
+
+					var rst_text = '';
+
+					if(td_date == fmt_today){
+						rst_text += "出版社：" + td_publisher;
+						rst_text += " / " + "作者：" + td_writedby + "\n\r";
+						rst_text += "タイトル：" + td_title + "\n\r";
+						rst_text += "---\n\r";
+
+						responseStorage(session, rst_text, '');
+
+					}
+				});
+
+				// 先頭の説明テキストを除いた件数
+				var num_stock = responseLength(session) - 1;
+
+				response_msg = num_stock + "件の記事をストックしました！";
+
+			} catch (e) {
+				// ストックを初期化する
+				session.userData.stock = null;
+
+				// エラー終了
+				response_msg = "検索結果をストックするのに失敗しました...";
+			}
+		});
 
 		// choceで選択したフィルターの削除
 		session.userData.filter = null;
@@ -1484,7 +1555,7 @@ dialog.matches(['honto','ほんと'],
 		// ストックした結果を表示するか確認をとる
 		session.beginDialog('/stock/master');
 
-		});
+		// });
 	}
 );
 
