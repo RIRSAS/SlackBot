@@ -931,7 +931,8 @@ dialog.matches('本', [
 
 bot.add('/book/search', [
 	function(session){
-		builder.Prompts.choice(session, "検索したいカテゴリーを選択してください！", "コミック(最新月)|小説(最新月)|コミック|小説");
+		// builder.Prompts.choice(session, "検索したいカテゴリーを選択してください！", "コミック(最新月)|小説(最新月)|コミック|小説");
+		builder.Prompts.choice(session, "新着・予約リストの参照先を選択してください！\n\r", "NEW|PRE");
 	},
 	function(session, results){
 
@@ -942,17 +943,11 @@ bot.add('/book/search', [
 		// カテゴリー舞のhref要素
 		if(results.response){
 			switch(results.response.entity){
-				case 'コミック(最新月)':
-					article_tag = 'comic_top';
+				case 'NEW':
+					article_tag = 'list_new';
 					break;
-				case '小説(最新月)':
-					article_tag = 'bunko_top';
-					break;
-				case 'コミック':
-					article_tag = 'c';
-					break;
-				case '小説':
-					article_tag = 'b';
+				case 'PRE':
+					article_tag = 'list_pre';
 					break;
 				default:
 					break;
@@ -1385,7 +1380,10 @@ dialog.matches(['ねとらぼ','netorabo'],
 );
 
 
-dialog.matches(['honto','ほんと'],
+dialog.matches(['honto','ほんと'],[
+	function(session){
+		session.beginDialog('/book/search');
+	},
 	function(session){
 
 		var dtBase = new Date();
@@ -1405,17 +1403,28 @@ dialog.matches(['honto','ほんと'],
 
 		var fmt_today = fmt_month + '月' + fmt_day + '日';
 
+		var list_type = session.userData.filter;
+
+		var url_base = '';
+
+		if (list_type == 'list_new'){
+			url_base = 'http://honto.jp/netstore/calender.html';
+		} else {
+			url_base = 'http://honto.jp/netstore/calender/old.html';
+		}
+
 		// 個別の記事へのリンクの親ページ
 //		var url_base = 'http://rajic.2chblog.jp/';
 		// var url_base = 'http://honto.jp/netstore/calender.html';
-		 var url_base = 'http://honto.jp/netstore/calender/old.html';
+		 // var url_base = 'http://honto.jp/netstore/calender/old.html';
 
-		var resultTextRajic = '';
-
-		var response_msg = "";
 
 		// hontoカレンダーページへアクセス
 		client.fetch(url_base,  function (err, $, res) {
+
+			var resultTextRajic = '';
+
+			var response_msg = "";
 
 			resultTextRajic = "本日(" + fmt_today +")発売の本は...\n\r";
 
@@ -1452,6 +1461,7 @@ dialog.matches(['honto','ほんと'],
 					var rst_text = '';
 
 					if(td_date == fmt_today){
+
 						rst_text += "出版社：" + td_publisher;
 						rst_text += " / " + "作者：" + td_writedby + "\n\r";
 						rst_text += "タイトル：" + td_title + "\n\r";
@@ -1461,75 +1471,6 @@ dialog.matches(['honto','ほんと'],
 
 					}
 
-				});
-
-				// 先頭の説明テキストを除いた件数
-				// var num_stock = responseLength(session) - 1;
-
-				// response_msg = num_stock + "件の記事をストックしました！";
-
-			} catch (e) {
-				// ストックを初期化する
-				session.userData.stock = null;
-
-				// エラー終了
-				response_msg = "検索結果をストックするのに失敗しました...";
-			}
-		});
-
-		// 当月分処理
-		url_base = 'http://honto.jp/netstore/calender.html';
-
-		// hontoカレンダーページへアクセス
-		client.fetch(url_base,  function (err, $, res) {
-
-			// resultTextRajic = '';
-
-			// resultTextRajic = "本日(" + fmt_today +")発売の本は...\n\r";
-
-			// resultTextRajic += "---\n\r";
-
-			response_msg = "";
-
-			// ストック初期化
-			// session.userData.stock = null;
-
-			try {
-				// 先頭ストック格納 urlは無しでセット
-			 	responseStorage(session, resultTextRajic, '');
-
-				// 取得対象タグを包括しているタグを指定
-				$('table.stTableData01 > tbody > tr').each(function(){
-
-					var _$b_target = $(this).find('td').eq(1);
-					var _$a_target = $(this).find('td');
-
-					// 日付
-					var td_date = _$a_target.eq(0).text();
-
-					// タイトル
-					var td_title = _$a_target.eq(1).text();
-
-					// 著者
-					var td_writedby = _$a_target.eq(2).text();
-
-					// 出版社
-					var td_publisher = _$a_target.eq(3).text();
-
-					// レーベル
-					var td_label = _$a_target.eq(4).text();
-
-					var rst_text = '';
-
-					if(td_date == fmt_today){
-						rst_text += "出版社：" + td_publisher;
-						rst_text += " / " + "作者：" + td_writedby + "\n\r";
-						rst_text += "タイトル：" + td_title + "\n\r";
-						rst_text += "---\n\r";
-
-						responseStorage(session, rst_text, '');
-
-					}
 				});
 
 				// 先頭の説明テキストを除いた件数
@@ -1557,7 +1498,7 @@ dialog.matches(['honto','ほんと'],
 
 		// });
 	}
-);
+]);
 
 
 
